@@ -7,16 +7,14 @@ struct TestError: Error {
     enum ErrorKind: String {
         case unexpectedNil =
             "Unexpectedly found nil while unwrapping optional value"
+        case expectedNil =
+            "Expected nil, found value instead"
         case other
     }
 
     init(_ kind: ErrorKind, message: String? = nil) {
         self.kind = kind
-        guard let message = message else {
-            self.message = kind.rawValue
-            return
-        }
-        self.message = message
+        self.message = message ?? kind.rawValue
     }
 }
 
