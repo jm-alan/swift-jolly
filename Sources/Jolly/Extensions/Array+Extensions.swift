@@ -5,11 +5,11 @@ public extension Array {
     subscript(safe index: Index) -> Element? {
         get { indices.contains(index) ? self[index] : nil }
         set {
-            if indices.contains(index),
-               let newValue = newValue
-            {
-                self[index] = newValue
-            }
+            guard
+                indices.contains(index),
+                let newValue = newValue
+            else { return }
+            self[index] = newValue
         }
     }
 
@@ -20,7 +20,7 @@ public extension Array {
 
     @inlinable
     func filter<C>(
-        _ comparator: Comparator<Element, C>
+        _ comparator: KeyValComparator<Element, C>
     ) -> [Element] where C: Comparable {
         filter(comparator.getValue)
     }
@@ -51,16 +51,26 @@ public extension Array {
     }
 
     @inlinable
+    func allSatisfy<C>(_ predicate: KeyValComparator<Element, C>) -> Bool {
+        allSatisfy(predicate.getValue(comparing:))
+    }
+
+    @inlinable
     func contains<E>(
         _ element: Element,
         criteria keyPath: KeyPath<Element, E>
     ) -> Bool where E: Equatable {
-        for el in self {
-            if el[keyPath: keyPath] == element[keyPath: keyPath] {
-                return true
-            }
+        contains { $0[keyPath: keyPath] == element[keyPath: keyPath] }
+    }
+
+    @inlinable
+    func contains<E>(
+        _ element: Element,
+        criteria keyPaths: [KeyPath<Element, E>]
+    ) -> Bool where E: Equatable {
+        contains { el in
+            keyPaths.allSatisfy { el[keyPath: $0] == element[keyPath: $0] }
         }
-        return false
     }
 
     // MARK: - New methods, array -> dictionary
@@ -100,10 +110,10 @@ public extension Array {
     }
 
     @inlinable
-    func grouped<KeyType, ValueType>(
+    func grouped<KeyType, ResultType>(
         by keyPath: KeyPath<Element, KeyType>,
-        sink: ([Element]) -> ValueType
-    ) -> [KeyType: ValueType] where KeyType: Hashable {
+        sink: ([Element]) -> ResultType
+    ) -> [KeyType: ResultType] where KeyType: Hashable {
         grouped(by: keyPath).mapValues(sink)
     }
 
@@ -113,6 +123,15 @@ public extension Array {
         sink: ([Element]) -> ResultType
     ) -> [KeyType: ResultType] where KeyType: Hashable {
         grouped(by: keySelector).mapValues(sink)
+    }
+
+    @inlinable
+    func grouped<KeyType, InterimType, ResultType>(
+        by keyPath: KeyPath<Element, KeyType>,
+        extracting valuePath: KeyPath<Element, InterimType>,
+        sink: ([InterimType]) -> ResultType
+    ) -> [KeyType: ResultType] where KeyType: Hashable {
+        grouped(by: keyPath, extracting: valuePath).mapValues(sink)
     }
 
     @inlinable
@@ -133,7 +152,7 @@ public extension Array {
 
     @inlinable
     func groupedReduce<KeyType, ResultType>(
-        initialValue: ResultType,
+        _ initialValue: ResultType,
         keySelector: (Element) -> KeyType,
         reducer: (ResultType, Element) -> ResultType
     ) -> [KeyType: ResultType] where KeyType: Hashable {
@@ -174,6 +193,15 @@ public extension Array {
     }
 
     @inlinable
+    func grouped<KeyType, InterimType, ResultType>(
+        by keyPath: KeyPath<Element, KeyType>,
+        extracting valuePath: KeyPath<Element, InterimType>,
+        sink: ([InterimType]) throws -> ResultType
+    ) rethrows -> [KeyType: ResultType] where KeyType: Hashable {
+        try grouped(by: keyPath, extracting: valuePath).mapValues(sink)
+    }
+
+    @inlinable
     func groupedFilter<H>(
         by keySelector: (Element) throws -> H,
         filter: (Element) throws -> Bool
@@ -191,7 +219,7 @@ public extension Array {
 
     @inlinable
     func groupedReduce<KeyType, ResultType>(
-        initialValue: ResultType,
+        _ initialValue: ResultType,
         keySelector: (Element) throws -> KeyType,
         reducer: (ResultType, Element) throws -> ResultType
     ) rethrows -> [KeyType: ResultType] where KeyType: Hashable {
