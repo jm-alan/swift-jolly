@@ -3,8 +3,10 @@ import XCTest
 struct TestError: Error {
     let kind: ErrorKind
     let message: String
+    var error: Error?
 
     enum ErrorKind: String {
+        case unexpectedError = "Unexpected error thrown while evaluating expression"
         case unexpectedNil =
             "Unexpectedly found nil while unwrapping optional value"
         case expectedNil =
@@ -12,25 +14,83 @@ struct TestError: Error {
         case other
     }
 
-    init(_ kind: ErrorKind, message: String? = nil) {
+    static func fail(
+        _ kind: ErrorKind,
+        message: String? = nil,
+        file: StaticString = #file,
+        line: UInt = #line
+    ) {
+        XCTFail(message ?? kind.rawValue, file: file, line: line)
+    }
+
+    init(
+        _ kind: ErrorKind,
+        message: String? = nil,
+        caught error: Error? = nil,
+        file: StaticString = #file,
+        line: UInt = #line
+    ) {
+        XCTFail(message ?? kind.rawValue, file: file, line: line)
         self.kind = kind
         self.message = message ?? kind.rawValue
+        self.error = error
     }
 }
 
-public func AsyncUnwrap<T>(
+func AsyncUnwrap<T>(
     _ getValue: @autoclosure () async throws -> T?,
     file: StaticString = #file,
     line: UInt = #line
 ) async throws -> T {
     guard let result = try await getValue() else {
         XCTFail(file: file, line: line)
-        throw TestError(.unexpectedNil)
+        throw TestError(.unexpectedNil, file: file, line: line)
     }
     return result
 }
 
-public func AsyncAssertEqual<E>(
+func AsyncAssertNoThrow(
+    _ shouldNotThrow: @autoclosure () async throws -> Void,
+    file: StaticString = #file,
+    line: UInt = #line
+) async {
+    do {
+        try await shouldNotThrow()
+    } catch {
+        TestError.fail(.unexpectedError, file: file, line: line)
+    }
+}
+
+func AsyncAssertNotNil<T>(
+    _ shouldNotBeNil: @autoclosure () async throws -> T?,
+    file: StaticString = #file,
+    line: UInt = #line
+) async {
+    do {
+        guard (try await shouldNotBeNil()) != nil else {
+            return TestError.fail(.unexpectedNil, file: file, line: line)
+        }
+    } catch {
+        TestError.fail(.unexpectedError, file: file, line: line)
+    }
+}
+
+func AsyncAssertNil<T>(
+    _ shouldBeNil: @autoclosure () async throws -> T?,
+    file: StaticString = #file,
+    line: UInt = #line
+) async {
+    do {
+        guard (try await shouldBeNil()) == nil else {
+            return
+        }
+        TestError.fail(.expectedNil, file: file, line: line)
+    } catch {
+        TestError.fail(.unexpectedError, file: file, line: line)
+    }
+}
+
+func AsyncAssertEqual<E>(
     _ expression1: @autoclosure () async throws -> E,
     _ expression2: @autoclosure () async throws -> E,
     file: StaticString = #file,
