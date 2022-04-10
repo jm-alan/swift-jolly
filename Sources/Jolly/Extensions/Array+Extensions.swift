@@ -50,6 +50,19 @@ public extension Array {
         compactMap { $0[keyPath: keyPath] }
     }
 
+    @inlinable
+    func contains<E>(
+        _ element: Element,
+        criteria keyPath: KeyPath<Element, E>
+    ) -> Bool where E: Equatable {
+        for el in self {
+            if el[keyPath: keyPath] == element[keyPath: keyPath] {
+                return true
+            }
+        }
+        return false
+    }
+
     // MARK: - New methods, array -> dictionary
 
     @inlinable
