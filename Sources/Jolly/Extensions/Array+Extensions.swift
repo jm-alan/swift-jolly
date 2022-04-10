@@ -1,5 +1,6 @@
-// Overloads of builtins using keypaths for common operations
 public extension Array {
+    // MARK: - Overloads of existing extensions using keypaths for simplicity
+
     @inlinable
     subscript(safe index: Index) -> Element? {
         get { indices.contains(index) ? self[index] : nil }
@@ -49,7 +50,8 @@ public extension Array {
         compactMap { $0[keyPath: keyPath] }
     }
 
-    // New methods, array -> dictionary
+    // MARK: - New methods, array -> dictionary
+
     @inlinable
     func grouped<H>(
         by keySelector: (Element) -> H
@@ -125,7 +127,8 @@ public extension Array {
         grouped(by: keySelector) { $0.reduce(initialValue, reducer) }
     }
 
-    // Grouping methods but throwing
+    // MARK: - Grouping methods but throwing
+
     @inlinable
     func grouped<H>(
         by keySelector: (Element) throws -> H
@@ -180,5 +183,86 @@ public extension Array {
         reducer: (ResultType, Element) throws -> ResultType
     ) rethrows -> [KeyType: ResultType] where KeyType: Hashable {
         try grouped(by: keySelector) { try $0.reduce(initialValue, reducer) }
+    }
+
+    // MARK: - New methods, array -> indexed dictionary
+
+    @inlinable
+    func indexed<H>(
+        by keySelector: (Element) -> H
+    ) -> [H: Element] where H: Hashable {
+        var indexed: [H: Element] = [:]
+        forEach { indexed[keySelector($0)] = $0 }
+        return indexed
+    }
+
+    @inlinable
+    func indexed<KeyType, ValueType>(
+        by keySelector: (Element) -> KeyType,
+        valueSelector: (Element) -> ValueType
+    ) -> [KeyType: ValueType] where KeyType: Hashable {
+        var indexed: [KeyType: ValueType] = [:]
+        forEach { indexed[keySelector($0)] = valueSelector($0) }
+        return indexed
+    }
+
+    @inlinable
+    func indexed<H>(
+        by keyPath: KeyPath<Element, H>
+    ) -> [H: Element] where H: Hashable {
+        var indexed: [H: Element] = [:]
+        forEach { indexed[$0[keyPath: keyPath]] = $0 }
+        return indexed
+    }
+
+    @inlinable
+    func indexed<KeyType, ValueType>(
+        by keyPath: KeyPath<Element, KeyType>,
+        valueSelector: (Element) -> ValueType
+    ) -> [KeyType: ValueType] where KeyType: Hashable {
+        var indexed: [KeyType: ValueType] = [:]
+        forEach { indexed[$0[keyPath: keyPath]] = valueSelector($0) }
+        return indexed
+    }
+
+    @inlinable
+    func indexed<KeyType, ValueType>(
+        by keyPath: KeyPath<Element, KeyType>,
+        extracting valuePath: KeyPath<Element, ValueType>
+    ) -> [KeyType: ValueType] where KeyType: Hashable {
+        var indexed: [KeyType: ValueType] = [:]
+        forEach { indexed[$0[keyPath: keyPath]] = $0[keyPath: valuePath] }
+        return indexed
+    }
+
+    // MARK: - Indexed methods but throwing
+
+    @inlinable
+    func indexed<H>(
+        by keySelector: (Element) throws -> H
+    ) rethrows -> [H: Element] where H: Hashable {
+        var indexed: [H: Element] = [:]
+        try forEach { try indexed[keySelector($0)] = $0 }
+        return indexed
+    }
+
+    @inlinable
+    func indexed<KeyType, ValueType>(
+        by keySelector: (Element) throws -> KeyType,
+        valueSelector: (Element) throws -> ValueType
+    ) rethrows -> [KeyType: ValueType] where KeyType: Hashable {
+        var indexed: [KeyType: ValueType] = [:]
+        try forEach { try indexed[keySelector($0)] = valueSelector($0) }
+        return indexed
+    }
+
+    @inlinable
+    func indexed<KeyType, ValueType>(
+        by keyPath: KeyPath<Element, KeyType>,
+        valueSelector: (Element) throws -> ValueType
+    ) rethrows -> [KeyType: ValueType] where KeyType: Hashable {
+        var indexed: [KeyType: ValueType] = [:]
+        try forEach { try indexed[$0[keyPath: keyPath]] = valueSelector($0) }
+        return indexed
     }
 }
