@@ -8,6 +8,7 @@ let package = Package(
     ],
     products: [
         .library(name: "Jolly", targets: ["Jolly"]),
+        .library(name: "Jest", targets: ["Jest"]),
     ],
     dependencies: [
         .package(
@@ -19,6 +20,7 @@ let package = Package(
         .target(name: "Jolly", dependencies: [
             .product(name: "OrderedCollections", package: "swift-collections"),
         ]),
-        .testTarget(name: "JollyTests", dependencies: ["Jolly"]),
+        .target(name: "Jest"),
+        .testTarget(name: "JollyTests", dependencies: ["Jolly", "Jest"]),
     ]
 )
