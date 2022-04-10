@@ -77,7 +77,11 @@ public extension Array {
         by keyPath: KeyPath<Element, KeyType>,
         extracting valuePath: KeyPath<Element, ValueType>
     ) -> [KeyType: [ValueType]] where KeyType: Hashable {
-        grouped { $0[keyPath: keyPath] } valueSelector: { $0[keyPath: valuePath] }
+        grouped {
+            $0[keyPath: keyPath]
+        } valueSelector: {
+            $0[keyPath: valuePath]
+        }
     }
 
     @inlinable
