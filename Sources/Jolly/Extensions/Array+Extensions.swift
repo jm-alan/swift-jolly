@@ -1,5 +1,31 @@
 public extension Array {
-    // MARK: - Overloads of existing extensions using keypaths for simplicity
+    // MARK: - An overload of reduce taking in a mutable initialResult
+
+    @inlinable
+    func reduce<R>(
+        _ initialResult: inout R,
+        _ reducer: (inout R, Element) -> Void
+    ) -> R {
+        var result = initialResult
+        for el in self {
+            reducer(&result, el)
+        }
+        return result
+    }
+
+    @inlinable
+    func reduce<R>(
+        _ initialResult: inout R,
+        _ reducer: (inout R, Element) throws -> Void
+    ) rethrows -> R {
+        var result = initialResult
+        for el in self {
+            try reducer(&result, el)
+        }
+        return result
+    }
+
+    // MARK: - Overloads of existing functions using keypaths for simplicity
 
     @inlinable
     subscript(safe index: Index) -> Element? {
