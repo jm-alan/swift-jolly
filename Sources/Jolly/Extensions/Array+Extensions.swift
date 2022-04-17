@@ -40,7 +40,9 @@ public extension Array {
     }
 
     @inlinable
-    func map<T>(_ keyPath: KeyPath<Element, T>) -> [T] {
+    func map<T>(
+        _ keyPath: KeyPath<Element, T>
+    ) -> [T] {
         map { $0[keyPath: keyPath] }
     }
 
@@ -52,32 +54,44 @@ public extension Array {
     }
 
     @inlinable
-    func filter(_ keyPath: KeyPath<Element, Bool>) -> [Element] {
+    func filter(
+        _ keyPath: KeyPath<Element, Bool>
+    ) -> [Element] {
         filter { $0[keyPath: keyPath] }
     }
 
     @inlinable
-    func nilter<O>(_ nilter: (Element) -> O?) -> [Element] {
+    func nilter<O>(
+        _ nilter: (Element) -> O?
+    ) -> [Element] {
         filter { nilter($0) != nil }
     }
 
     @inlinable
-    func nilter<O>(_ nilter: (Element) throws -> O?) rethrows -> [Element] {
+    func nilter<O>(
+        _ nilter: (Element) throws -> O?
+    ) rethrows -> [Element] {
         try filter { try nilter($0) != nil }
     }
 
     @inlinable
-    func nilter<T>(_ keyPath: KeyPath<Element, T?>) -> [Element] {
+    func nilter<T>(
+        _ keyPath: KeyPath<Element, T?>
+    ) -> [Element] {
         filter { $0[keyPath: keyPath] != nil }
     }
 
     @inlinable
-    func compactMap<T>(_ keyPath: KeyPath<Element, T?>) -> [T] {
+    func compactMap<T>(
+        _ keyPath: KeyPath<Element, T?>
+    ) -> [T] {
         compactMap { $0[keyPath: keyPath] }
     }
 
     @inlinable
-    func allSatisfy<C>(_ predicate: KeyValComparator<Element, C>) -> Bool {
+    func allSatisfy<C>(
+        _ predicate: KeyValComparator<Element, C>
+    ) -> Bool {
         allSatisfy(predicate.getValue(comparing:))
     }
 
