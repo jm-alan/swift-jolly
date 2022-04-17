@@ -113,6 +113,100 @@ public extension Array {
         }
     }
 
+    // MARK: - Async overloads of existing methods
+
+    @inlinable
+    func map<T>(
+        _ transform: (Element) async throws -> T
+    ) async rethrows -> [T] {
+        var mapped = [T]()
+        for el in self {
+            try await mapped.append(transform(el))
+        }
+        return mapped
+    }
+
+    @inlinable
+    func compactMap<T>(
+        _ transform: (Element) async throws -> T?
+    ) async rethrows -> [T] {
+        var mapped = [T]()
+        for el in self {
+            guard let transformed = try await transform(el) else { continue }
+            mapped.append(transformed)
+        }
+        return mapped
+    }
+
+    @inlinable
+    func filter(
+        _ isIncluded: (Element) async throws -> Bool
+    ) async rethrows -> [Element] {
+        var filtered = [Element]()
+        for el in self {
+            if try await isIncluded(el) {
+                filtered.append(el)
+            }
+        }
+        return filtered
+    }
+
+    @inlinable
+    func contains(
+        where isSatisfied: (Element) async throws -> Bool
+    ) async rethrows -> Bool {
+        for el in self {
+            if try await isSatisfied(el) { return true }
+        }
+        return false
+    }
+
+    @inlinable
+    func allSatisfy(
+        _ predicate: (Element) async throws -> Bool
+    ) async rethrows -> Bool {
+        for el in self {
+            guard try await predicate(el) else { return false }
+        }
+        return true
+    }
+
+    @inlinable
+    func nilter<T>(
+        _ nilter: (Element) async throws -> T?
+    ) async rethrows -> [Element] {
+        var niltered = [Element]()
+        for el in self {
+            guard try await nilter(el) != nil else { continue }
+            niltered.append(el)
+        }
+        return niltered
+    }
+
+    @inlinable
+    func reduce<R>(
+        _ initialResult: R,
+        _ reducer: (R, Element) async throws -> R
+    ) async rethrows -> R {
+        var result = initialResult
+        for el in self {
+            result = try await reducer(result, el)
+        }
+        return result
+    }
+
+    @inlinable
+    func reduce<R>(
+        _ initialResult: inout R,
+        _ reducer: (inout R, Element) async throws -> Void
+    ) async rethrows -> R {
+        var result = initialResult
+        for el in self {
+            try await reducer(&result, el)
+        }
+        return result
+    }
+
     // MARK: - New methods, array -> dictionary
 
     @inlinable
