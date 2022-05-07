@@ -1,45 +1,110 @@
-public extension Array {
-    // MARK: - An overload of reduce taking in a mutable initialResult
+import Foundation
 
+public extension Sequence where Self: RandomAccessCollection {
+    /// Automatically constrains the provided slice indices to fit within
+    /// the bounds of the known indices for the sequence
     @inlinable
-    func reduce<R>(
-        _ initialResult: inout R,
-        _ reducer: (inout R, Element) -> Void
-    ) -> R {
-        var result = initialResult
-        for el in self {
-            reducer(&result, el)
+    @inline(__always)
+    subscript(safe range: Range<Index>) -> SubSequence {
+        // Begin by assuming that the inbound range is untrusted, defaulting
+        // to the bounds of our known acceptable range
+        var constrainedLowerIndex: Index = startIndex
+        var constrainedUpperIndex: Index = endIndex
+        if
+            // if the lower bound is within the acceptable parameters, then
+            // we may reassign our lower bound to that
+            range.lowerBound >= startIndex,
+            range.lowerBound < endIndex
+        {
+            constrainedLowerIndex = range.lowerBound
         }
-        return result
+        if
+            // similarly, if the upper bound is within the acceptable parameters,
+            // then we may reassign our upper bound
+            range.upperBound >= startIndex,
+            range.upperBound < endIndex
+        {
+            constrainedUpperIndex = range.upperBound
+        }
+        // It's not necessary to validate anything about the comparison
+        // between lower and upper bounds, as reversed indices won't compile
+        return self[constrainedLowerIndex..<constrainedUpperIndex]
     }
 
+    /// Automatically constrains the provided slice indices to fit within
+    /// the bounds of the known indices for the sequence
     @inlinable
-    func reduce<R>(
-        _ initialResult: inout R,
-        _ reducer: (inout R, Element) throws -> Void
-    ) rethrows -> R {
-        var result = initialResult
-        for el in self {
-            try reducer(&result, el)
-        }
-        return result
+    @inline(__always)
+    subscript(safe range: ClosedRange<Index>) -> SubSequence {
+        return self[safe: range.lowerBound..<index(range.upperBound, offsetBy: 1)]
     }
 
     // MARK: - Overloads of existing functions using keypaths for simplicity
 
     @inlinable
+    @inline(__always)
     subscript(safe index: Index) -> Element? {
-        get { indices.contains(index) ? self[index] : nil }
-        set {
-            guard
-                indices.contains(index),
-                let newValue = newValue
-            else { return }
-            self[index] = newValue
+        indices.contains(index) ? self[index] : nil
+    }
+
+    @inlinable
+    @inline(__always)
+    func concurrentForEach(
+        in maxConcurrentDivisions: Int = ProcessInfo.processInfo.activeProcessorCount,
+        body: @escaping (Element) async throws -> Void
+    ) async throws {
+        let divisions: Int = Swift.min(
+            maxConcurrentDivisions,
+            ProcessInfo.processInfo.activeProcessorCount
+        )
+
+        let divisionLength: Int = .init((Double(count) / Double(divisions)).rounded(.up))
+
+        try await withThrowingTaskGroup(of: Void.self) { taskGroup in
+            var currentIndex: Index = startIndex
+
+            while currentIndex < endIndex {
+                let stableCurrentIndex = currentIndex
+                let nextIndex: Index = index(stableCurrentIndex, offsetBy: divisionLength)
+                taskGroup.addTask {
+                    try await self[safe: stableCurrentIndex..<nextIndex].forEach(body)
+                }
+                currentIndex = nextIndex
+            }
+            try await taskGroup.waitForAll()
         }
     }
 
     @inlinable
+    @inline(__always)
+    func concurrentMap<T>(
+        in maxConcurrentDivisions: Int = ProcessInfo.processInfo.activeProcessorCount,
+        transform: @escaping (Element) async throws -> T
+    ) async throws -> [T] {
+        let divisions: Int = Swift.min(
+            maxConcurrentDivisions,
+            ProcessInfo.processInfo.activeProcessorCount
+        )
+        let divisionLength: Int = .init((Double(count) / Double(divisions)).rounded(.up))
+
+        return try await withThrowingTaskGroup(of: [T].self, returning: [T].self) { taskGroup in
+            var currentIndex: Index = startIndex
+            while currentIndex < endIndex {
+                let stableCurrentIndex = currentIndex
+                let nextIndex: Index = index(stableCurrentIndex, offsetBy: divisionLength)
+                taskGroup.addTask {
+                    try await self[safe: stableCurrentIndex..<nextIndex].map(transform)
+                }
+                currentIndex = nextIndex
+            }
+            return try await taskGroup.reduce(into: []) { $0.append(contentsOf: $1) }
+        }
+    }
+}
+
+public extension Sequence {
+    @inlinable
+    @inline(__always)
     func map<T>(
         _ keyPath: KeyPath<Element, T>
     ) -> [T] {
@@ -47,6 +112,7 @@ public extension Array {
     }
 
     @inlinable
+    @inline(__always)
     func filter<C>(
         _ comparator: KeyValComparator<Element, C>
     ) -> [Element] where C: Comparable {
@@ -54,6 +120,7 @@ public extension Array {
     }
 
     @inlinable
+    @inline(__always)
     func filter(
         _ keyPath: KeyPath<Element, Bool>
     ) -> [Element] {
@@ -61,6 +128,7 @@ public extension Array {
     }
 
     @inlinable
+    @inline(__always)
     func nilter<O>(
         _ nilter: (Element) -> O?
     ) -> [Element] {
@@ -68,6 +136,7 @@ public extension Array {
     }
 
     @inlinable
+    @inline(__always)
     func nilter<O>(
         _ nilter: (Element) throws -> O?
     ) rethrows -> [Element] {
@@ -75,6 +144,7 @@ public extension Array {
     }
 
     @inlinable
+    @inline(__always)
     func nilter<T>(
         _ keyPath: KeyPath<Element, T?>
     ) -> [Element] {
@@ -82,6 +152,7 @@ public extension Array {
     }
 
     @inlinable
+    @inline(__always)
     func compactMap<T>(
         _ keyPath: KeyPath<Element, T?>
     ) -> [T] {
@@ -89,6 +160,7 @@ public extension Array {
     }
 
     @inlinable
+    @inline(__always)
     func allSatisfy<C>(
         _ predicate: KeyValComparator<Element, C>
     ) -> Bool {
@@ -96,6 +168,7 @@ public extension Array {
     }
 
     @inlinable
+    @inline(__always)
     func contains<E>(
         _ element: Element,
         criteria keyPath: KeyPath<Element, E>
@@ -104,6 +177,7 @@ public extension Array {
     }
 
     @inlinable
+    @inline(__always)
     func contains<E>(
         _ element: Element,
         criteria keyPaths: [KeyPath<Element, E>]
@@ -116,6 +190,17 @@ public extension Array {
     // MARK: - Async overloads of existing methods
 
     @inlinable
+    @inline(__always)
+    func forEach(
+        _ body: (Element) async throws -> Void
+    ) async rethrows {
+        for el in self {
+            try await body(el)
+        }
+    }
+
+    @inlinable
+    @inline(__always)
     func map<T>(
         _ transform: (Element) async throws -> T
     ) async rethrows -> [T] {
@@ -127,6 +212,7 @@ public extension Array {
     }
 
     @inlinable
+    @inline(__always)
     func compactMap<T>(
         _ transform: (Element) async throws -> T?
     ) async rethrows -> [T] {
@@ -139,6 +225,7 @@ public extension Array {
     }
 
     @inlinable
+    @inline(__always)
     func filter(
         _ isIncluded: (Element) async throws -> Bool
     ) async rethrows -> [Element] {
@@ -152,6 +239,33 @@ public extension Array {
     }
 
     @inlinable
+    @inline(__always)
+    func reduce<T>(
+        _ initialValue: T,
+        _ reducer: (T, Element) async throws -> T
+    ) async rethrows -> T {
+        var result = initialValue
+        for el in self {
+            result = try await reducer(result, el)
+        }
+        return result
+    }
+
+    @inlinable
+    @inline(__always)
+    func reduce<T>(
+        into initialValue: T,
+        _ mutatingReducer: (inout T, Element) async throws -> Void
+    ) async rethrows -> T {
+        var result = initialValue
+        for el in self {
+            try await mutatingReducer(&result, el)
+        }
+        return result
+    }
+
+    @inlinable
+    @inline(__always)
     func contains(
         where isSatisfied: (Element) async throws -> Bool
     ) async rethrows -> Bool {
@@ -162,6 +276,7 @@ public extension Array {
     }
 
     @inlinable
+    @inline(__always)
     func allSatisfy(
         _ predicate: (Element) async throws -> Bool
     ) async rethrows -> Bool {
@@ -172,6 +287,7 @@ public extension Array {
     }
 
     @inlinable
+    @inline(__always)
     func nilter<T>(
         _ nilter: (Element) async throws -> T?
     ) async rethrows -> [Element] {
@@ -183,33 +299,10 @@ public extension Array {
         return niltered
     }
 
-    @inlinable
-    func reduce<R>(
-        _ initialResult: R,
-        _ reducer: (R, Element) async throws -> R
-    ) async rethrows -> R {
-        var result = initialResult
-        for el in self {
-            result = try await reducer(result, el)
-        }
-        return result
-    }
-
-    @inlinable
-    func reduce<R>(
-        _ initialResult: inout R,
-        _ reducer: (inout R, Element) async throws -> Void
-    ) async rethrows -> R {
-        var result = initialResult
-        for el in self {
-            try await reducer(&result, el)
-        }
-        return result
-    }
-
     // MARK: - New methods, array -> dictionary
 
     @inlinable
+    @inline(__always)
     func grouped<H>(
         by keySelector: (Element) -> H
     ) -> [H: [Element]] where H: Hashable {
@@ -217,6 +310,7 @@ public extension Array {
     }
 
     @inlinable
+    @inline(__always)
     func grouped<KeyType, ValueType>(
         by keySelector: (Element) -> KeyType,
         valueSelector: (Element) -> ValueType
@@ -225,6 +319,7 @@ public extension Array {
     }
 
     @inlinable
+    @inline(__always)
     func grouped<H>(
         by keyPath: KeyPath<Element, H>
     ) -> [H: [Element]] where H: Hashable {
@@ -232,6 +327,7 @@ public extension Array {
     }
 
     @inlinable
+    @inline(__always)
     func grouped<KeyType, ValueType>(
         by keyPath: KeyPath<Element, KeyType>,
         extracting valuePath: KeyPath<Element, ValueType>
@@ -244,6 +340,7 @@ public extension Array {
     }
 
     @inlinable
+    @inline(__always)
     func grouped<KeyType, ResultType>(
         by keyPath: KeyPath<Element, KeyType>,
         sink: ([Element]) -> ResultType
@@ -252,6 +349,7 @@ public extension Array {
     }
 
     @inlinable
+    @inline(__always)
     func grouped<KeyType, ResultType>(
         by keySelector: (Element) -> KeyType,
         sink: ([Element]) -> ResultType
@@ -260,6 +358,7 @@ public extension Array {
     }
 
     @inlinable
+    @inline(__always)
     func grouped<KeyType, InterimType, ResultType>(
         by keyPath: KeyPath<Element, KeyType>,
         extracting valuePath: KeyPath<Element, InterimType>,
@@ -269,6 +368,7 @@ public extension Array {
     }
 
     @inlinable
+    @inline(__always)
     func groupedFilter<H>(
         by keySelector: (Element) -> H,
         filter: (Element) -> Bool
@@ -277,6 +377,7 @@ public extension Array {
     }
 
     @inlinable
+    @inline(__always)
     func groupedNilter<KeyType, OptionalType>(
         by keySelector: (Element) -> KeyType,
         nilter: (Element) -> OptionalType?
@@ -285,6 +386,7 @@ public extension Array {
     }
 
     @inlinable
+    @inline(__always)
     func groupedReduce<KeyType, ResultType>(
         _ initialValue: ResultType,
         keySelector: (Element) -> KeyType,
@@ -296,6 +398,7 @@ public extension Array {
     // MARK: - Grouping methods but throwing
 
     @inlinable
+    @inline(__always)
     func grouped<H>(
         by keySelector: (Element) throws -> H
     ) rethrows -> [H: [Element]] where H: Hashable {
@@ -303,6 +406,7 @@ public extension Array {
     }
 
     @inlinable
+    @inline(__always)
     func grouped<KeyType, ValueType>(
         by keySelector: (Element) throws -> KeyType,
         valueSelector: (Element) throws -> ValueType
@@ -311,6 +415,7 @@ public extension Array {
     }
 
     @inlinable
+    @inline(__always)
     func grouped<KeyType, ResultType>(
         by keySelector: (Element) throws -> KeyType,
         sink: ([Element]) throws -> ResultType
@@ -319,6 +424,7 @@ public extension Array {
     }
 
     @inlinable
+    @inline(__always)
     func grouped<KeyType, ValueType>(
         by keyPath: KeyPath<Element, KeyType>,
         sink: ([Element]) throws -> ValueType
@@ -327,6 +433,7 @@ public extension Array {
     }
 
     @inlinable
+    @inline(__always)
     func grouped<KeyType, InterimType, ResultType>(
         by keyPath: KeyPath<Element, KeyType>,
         extracting valuePath: KeyPath<Element, InterimType>,
@@ -336,6 +443,7 @@ public extension Array {
     }
 
     @inlinable
+    @inline(__always)
     func groupedFilter<H>(
         by keySelector: (Element) throws -> H,
         filter: (Element) throws -> Bool
@@ -344,6 +452,7 @@ public extension Array {
     }
 
     @inlinable
+    @inline(__always)
     func groupedNilter<KeyType, OptionalType>(
         by keySelector: (Element) throws -> KeyType,
         nilter: (Element) throws -> OptionalType?
@@ -352,6 +461,7 @@ public extension Array {
     }
 
     @inlinable
+    @inline(__always)
     func groupedReduce<KeyType, ResultType>(
         _ initialValue: ResultType,
         keySelector: (Element) throws -> KeyType,
@@ -363,79 +473,80 @@ public extension Array {
     // MARK: - New methods, array -> indexed dictionary
 
     @inlinable
+    @inline(__always)
     func indexed<H>(
         by keySelector: (Element) -> H
     ) -> [H: Element] where H: Hashable {
-        var indexed = [H: Element]()
-        return reduce(&indexed) { $0[keySelector($1)] = $1 }
+        reduce(into: [:]) { $0[keySelector($1)] = $1 }
     }
 
     @inlinable
+    @inline(__always)
     func indexed<KeyType, ValueType>(
         by keySelector: (Element) -> KeyType,
         valueSelector: (Element) -> ValueType
     ) -> [KeyType: ValueType] where KeyType: Hashable {
-        var indexed = [KeyType: ValueType]()
-        return reduce(&indexed) { $0[keySelector($1)] = valueSelector($1) }
+        reduce(into: [:]) { $0[keySelector($1)] = valueSelector($1) }
     }
 
     @inlinable
+    @inline(__always)
     func indexed<H>(
         by keyPath: KeyPath<Element, H>
     ) -> [H: Element] where H: Hashable {
-        var indexed = [H: Element]()
-        return reduce(&indexed) { $0[$1[keyPath: keyPath]] = $1 }
+        reduce(into: [:]) { $0[$1[keyPath: keyPath]] = $1 }
     }
 
     @inlinable
+    @inline(__always)
     func indexed<KeyType, ValueType>(
         by keyPath: KeyPath<Element, KeyType>,
         valueSelector: (Element) -> ValueType
     ) -> [KeyType: ValueType] where KeyType: Hashable {
-        var indexed = [KeyType: ValueType]()
-        return reduce(&indexed) { $0[$1[keyPath: keyPath]] = valueSelector($1) }
+        reduce(into: [:]) { $0[$1[keyPath: keyPath]] = valueSelector($1) }
     }
 
     @inlinable
+    @inline(__always)
     func indexed<KeyType, ValueType>(
         by keyPath: KeyPath<Element, KeyType>,
         extracting valuePath: KeyPath<Element, ValueType>
     ) -> [KeyType: ValueType] where KeyType: Hashable {
-        var indexed = [KeyType: ValueType]()
-        return reduce(&indexed) { $0[$1[keyPath: keyPath]] = $1[keyPath: valuePath] }
+        reduce(into: [:]) { $0[$1[keyPath: keyPath]] = $1[keyPath: valuePath] }
     }
 
     // MARK: - Indexed methods but throwing
 
     @inlinable
+    @inline(__always)
     func indexed<H>(
         by keySelector: (Element) throws -> H
     ) rethrows -> [H: Element] where H: Hashable {
-        var indexed = [H: Element]()
-        return try reduce(&indexed) { try $0[keySelector($1)] = $1 }
+        try reduce(into: [:]) { try $0[keySelector($1)] = $1 }
     }
 
     @inlinable
+    @inline(__always)
     func indexed<KeyType, ValueType>(
         by keySelector: (Element) throws -> KeyType,
         valueSelector: (Element) throws -> ValueType
     ) rethrows -> [KeyType: ValueType] where KeyType: Hashable {
-        var indexed = [KeyType: ValueType]()
-        return try reduce(&indexed) { try $0[keySelector($1)] = valueSelector($1) }
+        try reduce(into: [:]) { try $0[keySelector($1)] = valueSelector($1) }
     }
 
     @inlinable
+    @inline(__always)
     func indexed<KeyType, ValueType>(
         by keyPath: KeyPath<Element, KeyType>,
         valueSelector: (Element) throws -> ValueType
     ) rethrows -> [KeyType: ValueType] where KeyType: Hashable {
-        var indexed = [KeyType: ValueType]()
-        return try reduce(&indexed) { try $0[$1[keyPath: keyPath]] = valueSelector($1) }
+        try reduce(into: [:]) { try $0[$1[keyPath: keyPath]] = valueSelector($1) }
     }
 
     // MARK: - Grouping methods but async
 
     @inlinable
+    @inline(__always)
     func grouped<H>(
         by keySelector: (Element) async throws -> H
     ) async rethrows -> [H: [Element]] where H: Hashable {
@@ -443,6 +554,7 @@ public extension Array {
     }
 
     @inlinable
+    @inline(__always)
     func grouped<KeyType, ValueType>(
         by keySelector: (Element) async throws -> KeyType,
         valueSelector: (Element) async throws -> ValueType
@@ -451,6 +563,7 @@ public extension Array {
     }
 
     @inlinable
+    @inline(__always)
     func grouped<KeyType, ResultType>(
         by keySelector: (Element) async throws -> KeyType,
         sink: ([Element]) async throws -> ResultType
@@ -459,6 +572,7 @@ public extension Array {
     }
 
     @inlinable
+    @inline(__always)
     func grouped<KeyType, ValueType>(
         by keyPath: KeyPath<Element, KeyType>,
         sink: ([Element]) async throws -> ValueType
@@ -467,6 +581,7 @@ public extension Array {
     }
 
     @inlinable
+    @inline(__always)
     func grouped<KeyType, InterimType, ResultType>(
         by keyPath: KeyPath<Element, KeyType>,
         extracting valuePath: KeyPath<Element, InterimType>,
@@ -476,6 +591,7 @@ public extension Array {
     }
 
     @inlinable
+    @inline(__always)
     func groupedFilter<H>(
         by keySelector: (Element) async throws -> H,
         filter: (Element) async throws -> Bool
@@ -484,6 +600,7 @@ public extension Array {
     }
 
     @inlinable
+    @inline(__always)
     func groupedNilter<KeyType, OptionalType>(
         by keySelector: (Element) async throws -> KeyType,
         nilter: (Element) async throws -> OptionalType?
@@ -492,6 +609,7 @@ public extension Array {
     }
 
     @inlinable
+    @inline(__always)
     func groupedReduce<KeyType, ResultType>(
         _ initialValue: ResultType,
         keySelector: (Element) async throws -> KeyType,
@@ -503,28 +621,28 @@ public extension Array {
     // MARK: - Indexed methods but async
 
     @inlinable
+    @inline(__always)
     func indexed<H>(
         by keySelector: (Element) async throws -> H
     ) async rethrows -> [H: Element] where H: Hashable {
-        var indexed = [H: Element]()
-        return try await reduce(&indexed) { try await $0[keySelector($1)] = $1 }
+        try await reduce(into: [:]) { try await $0[keySelector($1)] = $1 }
     }
 
     @inlinable
+    @inline(__always)
     func indexed<KeyType, ValueType>(
         by keySelector: (Element) async throws -> KeyType,
         valueSelector: (Element) async throws -> ValueType
     ) async rethrows -> [KeyType: ValueType] where KeyType: Hashable {
-        var indexed = [KeyType: ValueType]()
-        return try await reduce(&indexed) { try await $0[keySelector($1)] = valueSelector($1) }
+        try await reduce(into: [:]) { try await $0[keySelector($1)] = valueSelector($1) }
     }
 
     @inlinable
+    @inline(__always)
     func indexed<KeyType, ValueType>(
         by keyPath: KeyPath<Element, KeyType>,
         valueSelector: (Element) async throws -> ValueType
     ) async rethrows -> [KeyType: ValueType] where KeyType: Hashable {
-        var indexed = [KeyType: ValueType]()
-        return try await reduce(&indexed) { try await $0[$1[keyPath: keyPath]] = valueSelector($1) }
+        try await reduce(into: [:]) { try await $0[$1[keyPath: keyPath]] = valueSelector($1) }
     }
 }

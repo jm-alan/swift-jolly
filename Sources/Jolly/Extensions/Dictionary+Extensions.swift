@@ -1,10 +1,12 @@
 public extension Dictionary {
     @inlinable
+    @inline(__always)
     subscript(unsafe key: Key) -> Value {
         return self[key]!
     }
 
     @inlinable
+    @inline(__always)
     init<S>(
         grouping values: S,
         by keySelector: (S.Element) async throws -> Key
@@ -20,6 +22,7 @@ public extension Dictionary {
     }
 
     @inlinable
+    @inline(__always)
     func mapValues<T>(
         _ transform: (Value) async throws -> T
     ) async rethrows -> [Key: T] {

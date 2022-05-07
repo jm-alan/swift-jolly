@@ -4,6 +4,7 @@ public struct KeyComparator<T, C> where C: Comparable {
     public let method: ComparisonTypes
 
     @inlinable
+    @inline(__always)
     public func getValue(lhs: T, rhs: T) -> Bool {
         switch method {
         case .equal:
@@ -20,6 +21,7 @@ public struct KeyComparator<T, C> where C: Comparable {
     }
 
     @inlinable
+    @inline(__always)
     public init(
         lhs: KeyPath<T, C>,
         rhs: KeyPath<T, C>,
@@ -37,6 +39,7 @@ public struct ValueComparator<C> where C: Comparable {
     public let method: ComparisonTypes
 
     @inlinable
+    @inline(__always)
     public func getValue() -> Bool {
         switch method {
         case .equal:
@@ -53,6 +56,7 @@ public struct ValueComparator<C> where C: Comparable {
     }
 
     @inlinable
+    @inline(__always)
     public init(lhs: C, rhs: C, method: ComparisonTypes = .equal) {
         self.lhs = lhs
         self.rhs = rhs
@@ -66,6 +70,7 @@ public struct KeyValComparator<T, C> where C: Comparable {
     public var method: ComparisonTypes
 
     @inlinable
+    @inline(__always)
     public func getValue(comparing value: T) -> Bool {
         switch method {
         case .equal:
@@ -82,6 +87,7 @@ public struct KeyValComparator<T, C> where C: Comparable {
     }
 
     @inlinable
+    @inline(__always)
     public init(lhs: KeyPath<T, C>, rhs: C, method: ComparisonTypes = .equal) {
         self.lhs = lhs
         self.rhs = rhs

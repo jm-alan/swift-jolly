@@ -5,6 +5,7 @@ prefix operator >=
 prefix operator <=
 
 @inlinable
+@inline(__always)
 public func == <T, C>(
     _ lhs: KeyPath<T, C>,
     _ rhs: KeyPath<T, C>
@@ -13,6 +14,7 @@ public func == <T, C>(
 }
 
 @inlinable
+@inline(__always)
 public func < <T, C>(
     _ lhs: KeyPath<T, C>,
     _ rhs: KeyPath<T, C>
@@ -21,6 +23,7 @@ public func < <T, C>(
 }
 
 @inlinable
+@inline(__always)
 public func <= <T, C>(
     _ lhs: KeyPath<T, C>,
     _ rhs: KeyPath<T, C>
@@ -29,6 +32,7 @@ public func <= <T, C>(
 }
 
 @inlinable
+@inline(__always)
 public func > <T, C>(
     _ lhs: KeyPath<T, C>,
     _ rhs: KeyPath<T, C>
@@ -37,6 +41,7 @@ public func > <T, C>(
 }
 
 @inlinable
+@inline(__always)
 public func >= <T, C>(
     _ lhs: KeyPath<T, C>,
     _ rhs: KeyPath<T, C>
@@ -45,6 +50,7 @@ public func >= <T, C>(
 }
 
 @inlinable
+@inline(__always)
 public func == <C>(
     _ lhs: C,
     _ rhs: C
@@ -53,6 +59,7 @@ public func == <C>(
 }
 
 @inlinable
+@inline(__always)
 public func < <C>(
     _ lhs: C,
     _ rhs: C
@@ -61,6 +68,7 @@ public func < <C>(
 }
 
 @inlinable
+@inline(__always)
 public func <= <C>(
     _ lhs: C,
     _ rhs: C
@@ -69,6 +77,7 @@ public func <= <C>(
 }
 
 @inlinable
+@inline(__always)
 public func > <C>(
     _ lhs: C,
     _ rhs: C
@@ -77,6 +86,7 @@ public func > <C>(
 }
 
 @inlinable
+@inline(__always)
 public func >= <C>(
     _ lhs: C,
     _ rhs: C
@@ -85,6 +95,7 @@ public func >= <C>(
 }
 
 @inlinable
+@inline(__always)
 public func == <T, C>(
     _ lhs: KeyPath<T, C>,
     _ rhs: C
@@ -93,6 +104,7 @@ public func == <T, C>(
 }
 
 @inlinable
+@inline(__always)
 public func < <T, C>(
     _ lhs: KeyPath<T, C>,
     _ rhs: C
@@ -101,6 +113,7 @@ public func < <T, C>(
 }
 
 @inlinable
+@inline(__always)
 public func <= <T, C>(
     _ lhs: KeyPath<T, C>,
     _ rhs: C
@@ -109,6 +122,7 @@ public func <= <T, C>(
 }
 
 @inlinable
+@inline(__always)
 public func > <T, C>(
     _ lhs: KeyPath<T, C>,
     _ rhs: C
@@ -117,6 +131,7 @@ public func > <T, C>(
 }
 
 @inlinable
+@inline(__always)
 public func >= <T, C>(
     _ lhs: KeyPath<T, C>,
     _ rhs: C
@@ -125,6 +140,7 @@ public func >= <T, C>(
 }
 
 @inlinable
+@inline(__always)
 public prefix func == <C>(_ rhs: C) -> ((C) -> Bool) where C: Comparable {
     return { (comparable: C) in
         comparable == rhs
@@ -132,6 +148,7 @@ public prefix func == <C>(_ rhs: C) -> ((C) -> Bool) where C: Comparable {
 }
 
 @inlinable
+@inline(__always)
 public prefix func <~ <C>(_ rhs: C) -> ((C) -> Bool) where C: Comparable {
     return { (comparable: C) in
         comparable < rhs
@@ -139,6 +156,7 @@ public prefix func <~ <C>(_ rhs: C) -> ((C) -> Bool) where C: Comparable {
 }
 
 @inlinable
+@inline(__always)
 public prefix func <= <C>(_ rhs: C) -> ((C) -> Bool) where C: Comparable {
     return { (comparable: C) in
         comparable <= rhs
@@ -146,6 +164,7 @@ public prefix func <= <C>(_ rhs: C) -> ((C) -> Bool) where C: Comparable {
 }
 
 @inlinable
+@inline(__always)
 public prefix func >~ <C>(_ rhs: C) -> ((C) -> Bool) where C: Comparable {
     return { (comparable: C) in
         comparable > rhs
@@ -153,6 +172,7 @@ public prefix func >~ <C>(_ rhs: C) -> ((C) -> Bool) where C: Comparable {
 }
 
 @inlinable
+@inline(__always)
 public prefix func >= <C>(_ rhs: C) -> ((C) -> Bool) where C: Comparable {
     return { (comparable: C) in
         comparable >= rhs
