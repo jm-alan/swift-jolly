@@ -1,38 +1,22 @@
 import Foundation
 
-public extension Sequence where Self: RandomAccessCollection {
-    /// Automatically constrains the provided slice indices to fit within
-    /// the bounds of the known indices for the sequence
+public extension Sequence where Self: RandomAccessCollection, Self: RangeReplaceableCollection {
     @inlinable
     @inline(__always)
     subscript(safe range: Range<Index>) -> SubSequence {
-        // Begin by assuming that the inbound range is untrusted, defaulting
-        // to the bounds of our known acceptable range
         var constrainedLowerIndex: Index = startIndex
         var constrainedUpperIndex: Index = endIndex
         if
-            // if the lower bound is within the acceptable parameters, then
-            // we may reassign our lower bound to that
             range.lowerBound >= startIndex,
             range.lowerBound < endIndex
-        {
-            constrainedLowerIndex = range.lowerBound
-        }
+        { constrainedLowerIndex = range.lowerBound }
         if
-            // similarly, if the upper bound is within the acceptable parameters,
-            // then we may reassign our upper bound
             range.upperBound >= startIndex,
             range.upperBound < endIndex
-        {
-            constrainedUpperIndex = range.upperBound
-        }
-        // It's not necessary to validate anything about the comparison
-        // between lower and upper bounds, as reversed indices won't compile
+        { constrainedUpperIndex = range.upperBound }
         return self[constrainedLowerIndex..<constrainedUpperIndex]
     }
 
-    /// Automatically constrains the provided slice indices to fit within
-    /// the bounds of the known indices for the sequence
     @inlinable
     @inline(__always)
     subscript(safe range: ClosedRange<Index>) -> SubSequence {
@@ -51,7 +35,7 @@ public extension Sequence where Self: RandomAccessCollection {
     @inline(__always)
     func concurrentForEach(
         in maxConcurrentDivisions: Int = ProcessInfo.processInfo.activeProcessorCount,
-        body: @escaping (Element) async throws -> Void
+        _ body: @escaping (Element) async throws -> Void
     ) async throws {
         let divisions: Int = Swift.min(
             maxConcurrentDivisions,
@@ -77,32 +61,166 @@ public extension Sequence where Self: RandomAccessCollection {
 
     @inlinable
     @inline(__always)
-    func concurrentMap<T>(
+    func concurrentMap<R>(
         in maxConcurrentDivisions: Int = ProcessInfo.processInfo.activeProcessorCount,
-        transform: @escaping (Element) async throws -> T
-    ) async throws -> [T] {
+        _ transform: @escaping (Element) async throws -> R.Element
+    ) async throws -> R where R: RangeReplaceableCollection {
         let divisions: Int = Swift.min(
             maxConcurrentDivisions,
             ProcessInfo.processInfo.activeProcessorCount
         )
         let divisionLength: Int = .init((Double(count) / Double(divisions)).rounded(.up))
 
-        return try await withThrowingTaskGroup(of: [T].self, returning: [T].self) { taskGroup in
+        return try await withThrowingTaskGroup(of: R.self) { taskGroup in
             var currentIndex: Index = startIndex
             while currentIndex < endIndex {
-                let stableCurrentIndex = currentIndex
+                let stableCurrentIndex: Index = currentIndex
                 let nextIndex: Index = index(stableCurrentIndex, offsetBy: divisionLength)
                 taskGroup.addTask {
                     try await self[safe: stableCurrentIndex..<nextIndex].map(transform)
                 }
                 currentIndex = nextIndex
             }
-            return try await taskGroup.reduce(into: []) { $0.append(contentsOf: $1) }
+            return try await taskGroup.reduce(into: .init()) { $0.append(contentsOf: $1) }
         }
     }
-}
 
-public extension Sequence {
+    @inlinable
+    @inline(__always)
+    func concurrentCompactMap<R>(
+        in maxConcurrentDivisions: Int = ProcessInfo.processInfo.activeProcessorCount,
+        _ transform: @escaping (Element) async throws -> R.Element?
+    ) async throws -> R where R: RangeReplaceableCollection {
+        let divisions: Int = Swift.min(
+            maxConcurrentDivisions,
+            ProcessInfo.processInfo.activeProcessorCount
+        )
+        let divisionLength: Int = .init((Double(count) / Double(divisions)).rounded(.up))
+
+        return try await withThrowingTaskGroup(of: R.self) { taskGroup in
+            var currentIndex: Index = startIndex
+            while currentIndex < endIndex {
+                let stableCurrentIndex: Index = currentIndex
+                let nextIndex: Index = index(stableCurrentIndex, offsetBy: divisionLength)
+                taskGroup.addTask {
+                    try await self[safe: stableCurrentIndex..<nextIndex].compactMap(transform)
+                }
+                currentIndex = nextIndex
+            }
+            return try await taskGroup.reduce(into: .init()) { $0.append(contentsOf: $1) }
+        }
+    }
+
+    @inlinable
+    @inline(__always)
+    func concurrentFilter(
+        in maxConcurrentDivisions: Int = ProcessInfo.processInfo.activeProcessorCount,
+        _ isIncluded: @escaping (Element) async throws -> Bool
+    ) async throws -> Self {
+        let divisions: Int = Swift.min(
+            maxConcurrentDivisions,
+            ProcessInfo.processInfo.activeProcessorCount
+        )
+        let divisionLength: Int = .init((Double(count) / Double(divisions)).rounded(.up))
+
+        return try await withThrowingTaskGroup(
+            of: SubSequence.self
+        ) { taskGroup in
+            var currentIndex: Index = startIndex
+            while currentIndex < endIndex {
+                let stableCurrentIndex: Index = currentIndex
+                let nextIndex: Index = index(stableCurrentIndex, offsetBy: divisionLength)
+                taskGroup.addTask {
+                    try await self[safe: stableCurrentIndex..<nextIndex].filter(isIncluded)
+                }
+                currentIndex = nextIndex
+            }
+            return try await taskGroup.reduce(into: .init()) { $0.append(contentsOf: $1) }
+        }
+    }
+
+    @inlinable
+    @inline(__always)
+    func concurrentNilter<T>(
+        in maxConcurrentDivisions: Int = ProcessInfo.processInfo.activeProcessorCount,
+        _ isNil: @escaping (Element) async throws -> T?
+    ) async throws -> Self {
+        let divisions: Int = Swift.min(
+            maxConcurrentDivisions,
+            ProcessInfo.processInfo.activeProcessorCount
+        )
+        let divisionLength: Int = .init((Double(count) / Double(divisions)).rounded(.up))
+
+        return try await withThrowingTaskGroup(
+            of: SubSequence.self
+        ) { taskGroup in
+            var currentIndex: Index = startIndex
+            while currentIndex < endIndex {
+                let stableCurrentIndex: Index = currentIndex
+                let nextIndex: Index = index(stableCurrentIndex, offsetBy: divisionLength)
+                taskGroup.addTask {
+                    try await self[safe: stableCurrentIndex..<nextIndex].nilter(isNil)
+                }
+                currentIndex = nextIndex
+            }
+            return try await taskGroup.reduce(into: .init()) { $0.append(contentsOf: $1) }
+        }
+    }
+
+    @inlinable
+    @inline(__always)
+    func concurrentAllSatisfy(
+        in maxConcurrentDivisions: Int = ProcessInfo.processInfo.activeProcessorCount,
+        _ predicate: @escaping (Element) async throws -> Bool
+    ) async throws -> Bool {
+        let divisions: Int = Swift.min(
+            maxConcurrentDivisions,
+            ProcessInfo.processInfo.activeProcessorCount
+        )
+        let divisionLength: Int = .init((Double(count) / Double(divisions)).rounded(.up))
+
+        return try await withThrowingTaskGroup(of: Bool.self) { taskGroup in
+            var currentIndex: Index = startIndex
+            while currentIndex < endIndex {
+                let stableCurrentIndex: Index = currentIndex
+                let nextIndex: Index = index(stableCurrentIndex, offsetBy: divisionLength)
+                taskGroup.addTask {
+                    try await self[safe: stableCurrentIndex..<nextIndex].allSatisfy(predicate)
+                }
+                currentIndex = nextIndex
+            }
+            return try await taskGroup.allSatisfy(==true)
+        }
+    }
+
+    @inlinable
+    @inline(__always)
+    func concurrentContains(
+        in maxConcurrentDivisions: Int = ProcessInfo.processInfo.activeProcessorCount,
+        where isSatisfied: @escaping (Element) async throws -> Bool
+    ) async throws -> Bool {
+        let divisions: Int = Swift.min(
+            maxConcurrentDivisions,
+            ProcessInfo.processInfo.activeProcessorCount
+        )
+        let divisionLength: Int = .init((Double(count) / Double(divisions)).rounded(.up))
+
+        return try await withThrowingTaskGroup(of: Bool.self) { taskGroup in
+            var currentIndex: Index = startIndex
+            while currentIndex < endIndex {
+                let stableCurrentIndex: Index = currentIndex
+                let nextIndex: Index = index(stableCurrentIndex, offsetBy: divisionLength)
+                taskGroup.addTask {
+                    try await self[
+                        safe: stableCurrentIndex..<nextIndex
+                    ].contains(where: isSatisfied)
+                }
+                currentIndex = nextIndex
+            }
+            return try await taskGroup.contains(where: ==true)
+        }
+    }
+
     @inlinable
     @inline(__always)
     func map<T>(
@@ -115,7 +233,7 @@ public extension Sequence {
     @inline(__always)
     func filter<C>(
         _ comparator: KeyValComparator<Element, C>
-    ) -> [Element] where C: Comparable {
+    ) -> Self where C: Comparable {
         filter(comparator.getValue)
     }
 
@@ -123,7 +241,7 @@ public extension Sequence {
     @inline(__always)
     func filter(
         _ keyPath: KeyPath<Element, Bool>
-    ) -> [Element] {
+    ) -> Self {
         filter { $0[keyPath: keyPath] }
     }
 
@@ -131,7 +249,7 @@ public extension Sequence {
     @inline(__always)
     func nilter<O>(
         _ nilter: (Element) -> O?
-    ) -> [Element] {
+    ) -> Self {
         filter { nilter($0) != nil }
     }
 
@@ -139,7 +257,7 @@ public extension Sequence {
     @inline(__always)
     func nilter<O>(
         _ nilter: (Element) throws -> O?
-    ) rethrows -> [Element] {
+    ) rethrows -> Self {
         try filter { try nilter($0) != nil }
     }
 
@@ -147,7 +265,7 @@ public extension Sequence {
     @inline(__always)
     func nilter<T>(
         _ keyPath: KeyPath<Element, T?>
-    ) -> [Element] {
+    ) -> Self {
         filter { $0[keyPath: keyPath] != nil }
     }
 
@@ -176,17 +294,6 @@ public extension Sequence {
         contains { $0[keyPath: keyPath] == element[keyPath: keyPath] }
     }
 
-    @inlinable
-    @inline(__always)
-    func contains<E>(
-        _ element: Element,
-        criteria keyPaths: [KeyPath<Element, E>]
-    ) -> Bool where E: Equatable {
-        contains { el in
-            keyPaths.allSatisfy { el[keyPath: $0] == element[keyPath: $0] }
-        }
-    }
-
     // MARK: - Async overloads of existing methods
 
     @inlinable
@@ -194,18 +301,18 @@ public extension Sequence {
     func forEach(
         _ body: (Element) async throws -> Void
     ) async rethrows {
-        for el in self {
+        for el: Element in self {
             try await body(el)
         }
     }
 
     @inlinable
     @inline(__always)
-    func map<T>(
-        _ transform: (Element) async throws -> T
-    ) async rethrows -> [T] {
-        var mapped = [T]()
-        for el in self {
+    func map<R>(
+        _ transform: (Element) async throws -> R.Element
+    ) async rethrows -> R where R: RangeReplaceableCollection {
+        var mapped: R = .init()
+        for el: Element in self {
             try await mapped.append(transform(el))
         }
         return mapped
@@ -213,12 +320,12 @@ public extension Sequence {
 
     @inlinable
     @inline(__always)
-    func compactMap<T>(
-        _ transform: (Element) async throws -> T?
-    ) async rethrows -> [T] {
-        var mapped = [T]()
-        for el in self {
-            guard let transformed = try await transform(el) else { continue }
+    func compactMap<R>(
+        _ transform: (Element) async throws -> R.Element?
+    ) async rethrows -> R where R: RangeReplaceableCollection {
+        var mapped: R = .init()
+        for el: Element in self {
+            guard let transformed: R.Element = try await transform(el) else { continue }
             mapped.append(transformed)
         }
         return mapped
@@ -228,12 +335,10 @@ public extension Sequence {
     @inline(__always)
     func filter(
         _ isIncluded: (Element) async throws -> Bool
-    ) async rethrows -> [Element] {
-        var filtered = [Element]()
-        for el in self {
-            if try await isIncluded(el) {
-                filtered.append(el)
-            }
+    ) async rethrows -> Self {
+        var filtered: Self = .init()
+        for el: Element in self {
+            if try await isIncluded(el) { filtered.append(el) }
         }
         return filtered
     }
@@ -244,8 +349,8 @@ public extension Sequence {
         _ initialValue: T,
         _ reducer: (T, Element) async throws -> T
     ) async rethrows -> T {
-        var result = initialValue
-        for el in self {
+        var result: T = initialValue
+        for el: Element in self {
             result = try await reducer(result, el)
         }
         return result
@@ -257,8 +362,8 @@ public extension Sequence {
         into initialValue: T,
         _ mutatingReducer: (inout T, Element) async throws -> Void
     ) async rethrows -> T {
-        var result = initialValue
-        for el in self {
+        var result: T = initialValue
+        for el: Element in self {
             try await mutatingReducer(&result, el)
         }
         return result
@@ -269,7 +374,7 @@ public extension Sequence {
     func contains(
         where isSatisfied: (Element) async throws -> Bool
     ) async rethrows -> Bool {
-        for el in self {
+        for el: Element in self {
             if try await isSatisfied(el) { return true }
         }
         return false
@@ -280,7 +385,7 @@ public extension Sequence {
     func allSatisfy(
         _ predicate: (Element) async throws -> Bool
     ) async rethrows -> Bool {
-        for el in self {
+        for el: Element in self {
             guard try await predicate(el) else { return false }
         }
         return true
@@ -290,9 +395,9 @@ public extension Sequence {
     @inline(__always)
     func nilter<T>(
         _ nilter: (Element) async throws -> T?
-    ) async rethrows -> [Element] {
-        var niltered = [Element]()
-        for el in self {
+    ) async rethrows -> Self {
+        var niltered = Self()
+        for el: Element in self {
             guard try await nilter(el) != nil else { continue }
             niltered.append(el)
         }
