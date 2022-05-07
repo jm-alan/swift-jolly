@@ -141,9 +141,9 @@ public func >= <T, C>(
 
 @inlinable
 @inline(__always)
-public prefix func == <C>(_ rhs: C) -> ((C) -> Bool) where C: Comparable {
-    return { (comparable: C) in
-        comparable == rhs
+public prefix func == <E>(_ rhs: E) -> ((E) -> Bool) where E: Equatable {
+    return { (equatable: E) in
+        equatable == rhs
     }
 }
 
