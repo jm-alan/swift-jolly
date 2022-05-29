@@ -21,15 +21,14 @@ public extension Sequence where Self: RandomAccessCollection, Self: RangeReplace
     @inline(__always)
     subscript(safe range: ClosedRange<Index>) -> SubSequence {
         return self[safe: range.lowerBound..<index(range.upperBound, offsetBy: 1)]
-    }
-
-    // MARK: - Overloads of existing functions using keypaths for simplicity
 
     @inlinable
     @inline(__always)
     subscript(safe index: Index) -> Element? {
         indices.contains(index) ? self[index] : nil
     }
+
+    // MARK: - Concurrency
 
     @inlinable
     @inline(__always)
@@ -220,6 +219,9 @@ public extension Sequence where Self: RandomAccessCollection, Self: RangeReplace
             return try await taskGroup.contains(where: ==true)
         }
     }
+    }
+
+    // MARK: - Overloads of existing functions using keypaths for simplicity
 
     @inlinable
     @inline(__always)
