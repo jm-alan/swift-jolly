@@ -15,6 +15,8 @@ let package = Package(
             url: "https://github.com/apple/swift-collections.git",
             from: "1.0.2"
         ),
+        .package(url: "https://github.com/vapor/fluent", from: "4.5.0"),
+        .package(url: "https://github.com/vapor/fluent-postgres-driver", from: "2.0.0"),
     ],
     targets: [
         .target(name: "Jolly", dependencies: [
