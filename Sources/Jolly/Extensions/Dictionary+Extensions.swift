@@ -2,7 +2,12 @@ public extension Dictionary {
     @inlinable
     @inline(__always)
     subscript(unsafe key: Key) -> Value {
-        return self[key]!
+        get {
+            return self[key]!
+        }
+        set (val) {
+            self[key] = val
+        }
     }
 
     @inlinable
