@@ -20,7 +20,7 @@ let package = Package(
         .target(name: "Jolly", dependencies: [
             .product(name: "OrderedCollections", package: "swift-collections"),
         ]),
-        .target(name: "Jest"),
+        .target(name: "Jest", dependencies: ["Jolly"]),
         .testTarget(name: "JollyTests", dependencies: ["Jolly", "Jest"]),
     ]
 )
