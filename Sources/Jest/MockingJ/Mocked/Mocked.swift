@@ -9,13 +9,19 @@ final class Mocked<Mockable> {
     @usableFromInline
     var writeRecord: [PartialKeyPath<Mockable>: [Any]] = .init()
     @usableFromInline
-    var invocationRecord: [PartialKeyPath<Mockable>: [Any]] = .init()
+    var closureInvocationRecord: [PartialKeyPath<Mockable>: [Any]] = .init()
+    @usableFromInline
+    var memberFnStorage: [String: Any] = .init()
+    @usableFromInline
+    var memberFnInvocationRecord: [String: [Any]] = .init()
     @usableFromInline
     var accessTimeRecord: [PartialKeyPath<Mockable>: [TimeInterval]] = .init()
     @usableFromInline
     var writeTimeRecord: [PartialKeyPath<Mockable>: [TimeInterval]] = .init()
     @usableFromInline
-    var invocationTimeRecord: [PartialKeyPath<Mockable>: [TimeInterval]] = .init()
+    var memberFnInvocationTimeRecord: [String: [TimeInterval]] = .init()
+    @usableFromInline
+    var closureInvocationTimeRecord: [PartialKeyPath<Mockable>: [TimeInterval]] = .init()
     @usableFromInline
     var throwRecord: [PartialKeyPath<Mockable>: [Error]] = .init()
 

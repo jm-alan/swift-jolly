@@ -1,11 +1,11 @@
 import XCTest
 
-extension AssertionBuilder {
+extension InvocableAssertionBuilder {
     @inlinable
     @inline(__always)
     @discardableResult
-    func with<Param1>(
-        _ expectedParameters: [Param1],
+    func toBeCalled<Param1>(
+        with expectedParameters: [Param1],
         file: StaticString = #file,
         line: UInt = #line
     ) -> Self where Param1: Comparable {
@@ -20,7 +20,7 @@ extension AssertionBuilder {
             return self
         }
         guard
-            let invocationRecordEntry = invocationRecord[targetKeyPath],
+            let invocationRecordEntry = invocationRecord[memberFnName],
             !invocationRecordEntry.isEmpty
         else {
             XCTFail("Function was never invoked", file: file, line: line)
@@ -67,8 +67,8 @@ extension AssertionBuilder {
     @inlinable
     @inline(__always)
     @discardableResult
-    func with<Param1, Param2>(
-        _ expectedParameters: [(Param1, Param2)],
+    func toBeCalled<Param1, Param2>(
+        with expectedParameters: [(Param1, Param2)],
         file: StaticString = #file,
         line: UInt = #line
     ) -> Self where
@@ -86,7 +86,7 @@ extension AssertionBuilder {
             return self
         }
         guard
-            let invocationRecordEntry = invocationRecord[targetKeyPath],
+            let invocationRecordEntry = invocationRecord[memberFnName],
             !invocationRecordEntry.isEmpty
         else {
             XCTFail("Function was never invoked", file: file, line: line)
@@ -144,8 +144,8 @@ extension AssertionBuilder {
     @inlinable
     @inline(__always)
     @discardableResult
-    func with<Param1, Param2, Param3>(
-        _ expectedParameters: [(Param1, Param2, Param3)],
+    func toBeCalled<Param1, Param2, Param3>(
+        with expectedParameters: [(Param1, Param2, Param3)],
         file: StaticString = #file,
         line: UInt = #line
     ) -> Self where
@@ -164,7 +164,7 @@ extension AssertionBuilder {
             return self
         }
         guard
-            let invocationRecordEntry = invocationRecord[targetKeyPath],
+            let invocationRecordEntry = invocationRecord[memberFnName],
             !invocationRecordEntry.isEmpty
         else {
             XCTFail("Function was never invoked", file: file, line: line)
@@ -235,13 +235,13 @@ extension AssertionBuilder {
     @inlinable
     @inline(__always)
     @discardableResult
-    func with<
+    func toBeCalled<
         Param1,
         Param2,
         Param3,
         Param4
     >(
-        _ expectedParameters: [(Param1, Param2, Param3, Param4)],
+        with expectedParameters: [(Param1, Param2, Param3, Param4)],
         file: StaticString = #file,
         line: UInt = #line
     ) -> Self where
@@ -261,7 +261,7 @@ extension AssertionBuilder {
             return self
         }
         guard
-            let invocationRecordEntry = invocationRecord[targetKeyPath],
+            let invocationRecordEntry = invocationRecord[memberFnName],
             !invocationRecordEntry.isEmpty
         else {
             XCTFail("Function was never invoked", file: file, line: line)
@@ -359,14 +359,14 @@ extension AssertionBuilder {
     @inlinable
     @inline(__always)
     @discardableResult
-    func with<
+    func toBeCalled<
         Param1,
         Param2,
         Param3,
         Param4,
         Param5
     >(
-        _ expectedParameters: [(Param1, Param2, Param3, Param4, Param5)],
+        with expectedParameters: [(Param1, Param2, Param3, Param4, Param5)],
         file: StaticString = #file,
         line: UInt = #line
     ) -> Self where
@@ -387,7 +387,7 @@ extension AssertionBuilder {
             return self
         }
         guard
-            let invocationRecordEntry = invocationRecord[targetKeyPath],
+            let invocationRecordEntry = invocationRecord[memberFnName],
             !invocationRecordEntry.isEmpty
         else {
             XCTFail("Function was never invoked", file: file, line: line)
@@ -499,7 +499,7 @@ extension AssertionBuilder {
     @inlinable
     @inline(__always)
     @discardableResult
-    func with<
+    func toBeCalled<
         Param1,
         Param2,
         Param3,
@@ -507,7 +507,7 @@ extension AssertionBuilder {
         Param5,
         Param6
     >(
-        _ expectedParameters: [(Param1, Param2, Param3, Param4, Param5, Param6)],
+        with expectedParameters: [(Param1, Param2, Param3, Param4, Param5, Param6)],
         file: StaticString = #file,
         line: UInt = #line
     ) -> Self where
@@ -529,7 +529,7 @@ extension AssertionBuilder {
             return self
         }
         guard
-            let invocationRecordEntry = invocationRecord[targetKeyPath],
+            let invocationRecordEntry = invocationRecord[memberFnName],
             !invocationRecordEntry.isEmpty
         else {
             XCTFail("Function was never invoked", file: file, line: line)
@@ -653,7 +653,7 @@ extension AssertionBuilder {
     @inlinable
     @inline(__always)
     @discardableResult
-    func with<
+    func toBeCalled<
         Param1,
         Param2,
         Param3,
@@ -662,7 +662,7 @@ extension AssertionBuilder {
         Param6,
         Param7
     >(
-        _ expectedParameters: [(Param1, Param2, Param3, Param4, Param5, Param6, Param7)],
+        with expectedParameters: [(Param1, Param2, Param3, Param4, Param5, Param6, Param7)],
         file: StaticString = #file,
         line: UInt = #line
     ) -> Self where
@@ -685,7 +685,7 @@ extension AssertionBuilder {
             return self
         }
         guard
-            let invocationRecordEntry = invocationRecord[targetKeyPath],
+            let invocationRecordEntry = invocationRecord[memberFnName],
             !invocationRecordEntry.isEmpty
         else {
             XCTFail("Function was never invoked", file: file, line: line)
@@ -822,7 +822,7 @@ extension AssertionBuilder {
     @inlinable
     @inline(__always)
     @discardableResult
-    func with<
+    func toBeCalled<
         Param1,
         Param2,
         Param3,
@@ -832,7 +832,7 @@ extension AssertionBuilder {
         Param7,
         Param8
     >(
-        _ expectedParameters: [(
+        with expectedParameters: [(
             Param1,
             Param2,
             Param3,
@@ -865,7 +865,7 @@ extension AssertionBuilder {
             return self
         }
         guard
-            let invocationRecordEntry = invocationRecord[targetKeyPath],
+            let invocationRecordEntry = invocationRecord[memberFnName],
             !invocationRecordEntry.isEmpty
         else {
             XCTFail("Function was never invoked", file: file, line: line)
@@ -1015,7 +1015,7 @@ extension AssertionBuilder {
     @inlinable
     @inline(__always)
     @discardableResult
-    func with<
+    func toBeCalled<
         Param1,
         Param2,
         Param3,
@@ -1026,7 +1026,7 @@ extension AssertionBuilder {
         Param8,
         Param9
     >(
-        _ expectedParameters: [(
+        with expectedParameters: [(
             Param1,
             Param2,
             Param3,
@@ -1061,7 +1061,7 @@ extension AssertionBuilder {
             return self
         }
         guard
-            let invocationRecordEntry = invocationRecord[targetKeyPath],
+            let invocationRecordEntry = invocationRecord[memberFnName],
             !invocationRecordEntry.isEmpty
         else {
             XCTFail("Function was never invoked", file: file, line: line)
@@ -1224,7 +1224,7 @@ extension AssertionBuilder {
     @inlinable
     @inline(__always)
     @discardableResult
-    func with<
+    func toBeCalled<
         Param1,
         Param2,
         Param3,
@@ -1236,7 +1236,7 @@ extension AssertionBuilder {
         Param9,
         Param10
     >(
-        _ expectedParameters: [(
+        with expectedParameters: [(
             Param1,
             Param2,
             Param3,
@@ -1273,7 +1273,7 @@ extension AssertionBuilder {
             return self
         }
         guard
-            let invocationRecordEntry = invocationRecord[targetKeyPath],
+            let invocationRecordEntry = invocationRecord[memberFnName],
             !invocationRecordEntry.isEmpty
         else {
             XCTFail("Function was never invoked", file: file, line: line)

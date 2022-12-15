@@ -1,6 +1,6 @@
 import XCTest
 
-extension AssertionBuilder {
+extension InvocableAssertionBuilder {
     @inlinable
     @inline(__always)
     @discardableResult
@@ -9,7 +9,7 @@ extension AssertionBuilder {
         file: StaticString = #file,
         line: UInt = #line
     ) -> Self {
-        let actualCalls = invocationRecord[targetKeyPath]?.count ?? 0
+        let actualCalls = invocationRecord[memberFnName]?.count ?? 0
         XCTAssertEqual(
             actualCalls,
             expectedCalls,
@@ -32,7 +32,7 @@ extension AssertionBuilder {
         file: StaticString = #file,
         line: UInt = #line
     ) -> Self {
-        let actualCalls = invocationRecord[targetKeyPath]?.count ?? 0
+        let actualCalls = invocationRecord[memberFnName]?.count ?? 0
         XCTAssertGreaterThanOrEqual(
             actualCalls,
             expectedCalls,
@@ -55,7 +55,7 @@ extension AssertionBuilder {
         file _: StaticString = #file,
         line _: UInt = #line
     ) -> Self {
-        let actualCalls = invocationRecord[targetKeyPath]?.count ?? 0
+        let actualCalls = invocationRecord[memberFnName]?.count ?? 0
         XCTAssertLessThanOrEqual(
             actualCalls,
             expectedCalls,

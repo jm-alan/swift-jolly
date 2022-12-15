@@ -1,6 +1,6 @@
 import XCTest
 
-extension AssertionBuilder {
+extension PropertyAssertionBuilder {
     @inlinable
     @inline(__always)
     @discardableResult
@@ -9,7 +9,7 @@ extension AssertionBuilder {
         file: StaticString = #file,
         line: UInt = #line
     ) -> Self {
-        let actualReads = accessRecord[targetKeyPath]?.count ?? 0
+        let actualReads = accessRecord[accessor]?.count ?? 0
         XCTAssertEqual(
             expectedReads,
             actualReads,
@@ -33,7 +33,7 @@ extension AssertionBuilder {
         line: UInt = #line
     ) -> Self {
         guard expectedReads > 0 else { return self }
-        let actualReads = accessRecord[targetKeyPath]?.count ?? 0
+        let actualReads = accessRecord[accessor]?.count ?? 0
         XCTAssertGreaterThanOrEqual(
             actualReads,
             expectedReads,
@@ -56,7 +56,7 @@ extension AssertionBuilder {
         file: StaticString = #file,
         line: UInt = #line
     ) -> Self {
-        let actualReads = accessRecord[targetKeyPath]?.count ?? 0
+        let actualReads = accessRecord[accessor]?.count ?? 0
         XCTAssertLessThanOrEqual(
             actualReads,
             expectedReads,

@@ -63,16 +63,16 @@ final class MockingJProvingGrounds: XCTestCase {
         var expectedReturnsTen: [Int] = .init()
 
         for i in 0..<1000 {
-            mockedStruct[\.returnOne](i)
-            mockedStruct[\.addTwo](i, i)
-            mockedStruct[\.addThree](i, i, i)
-            mockedStruct[\.addFour](i, i, i, i)
-            mockedStruct[\.addFive](i, i, i, i, i)
-            mockedStruct[\.addSix](i, i, i, i, i, i)
-            mockedStruct[\.addSeven](i, i, i, i, i, i, i)
-            mockedStruct[\.addEight](i, i, i, i, i, i, i, i)
-            mockedStruct[\.addNine](i, i, i, i, i, i, i, i, i)
-            mockedStruct[\.addTen](i, i, i, i, i, i, i, i, i, i)
+            mockedStruct[discardable: \.returnOne](i)
+            mockedStruct[discardable: \.addTwo](i, i)
+            mockedStruct[discardable: \.addThree](i, i, i)
+            mockedStruct[discardable: \.addFour](i, i, i, i)
+            mockedStruct[discardable: \.addFive](i, i, i, i, i)
+            mockedStruct[discardable: \.addSix](i, i, i, i, i, i)
+            mockedStruct[discardable: \.addSeven](i, i, i, i, i, i, i)
+            mockedStruct[discardable: \.addEight](i, i, i, i, i, i, i, i)
+            mockedStruct[discardable: \.addNine](i, i, i, i, i, i, i, i, i)
+            mockedStruct[discardable: \.addTen](i, i, i, i, i, i, i, i, i, i)
 
             expectedParamsOne.append(i)
             expectedParamsTwo.append((i, i))
@@ -100,52 +100,78 @@ final class MockingJProvingGrounds: XCTestCase {
         mockedStruct
             .expect(\.returnOne)
             .toBeCalled(exactly: 1000)
-            .with(expectedParamsOne)
-            .returning(expectedReturnsOne)
+            .toBeCalled(with: expectedParamsOne)
+            .toReturn(expectedReturnsOne)
         mockedStruct
             .expect(\.addTwo)
             .toBeCalled(exactly: 1000)
-            .with(expectedParamsTwo)
-            .returning(expectedReturnsTwo)
+            .toBeCalled(with: expectedParamsTwo)
+            .toReturn(expectedReturnsTwo)
         mockedStruct
             .expect(\.addThree)
             .toBeCalled(exactly: 1000)
-            .with(expectedParamsThree)
-            .returning(expectedReturnsThree)
+            .toBeCalled(with: expectedParamsThree)
+            .toReturn(expectedReturnsThree)
         mockedStruct
             .expect(\.addFour)
             .toBeCalled(exactly: 1000)
-            .with(expectedParamsFour)
-            .returning(expectedReturnsFour)
+            .toBeCalled(with: expectedParamsFour)
+            .toReturn(expectedReturnsFour)
         mockedStruct
             .expect(\.addFive)
             .toBeCalled(exactly: 1000)
-            .with(expectedParamsFive)
-            .returning(expectedReturnsFive)
+            .toBeCalled(with: expectedParamsFive)
+            .toReturn(expectedReturnsFive)
         mockedStruct
             .expect(\.addSix)
             .toBeCalled(exactly: 1000)
-            .with(expectedParamsSix)
-            .returning(expectedReturnsSix)
+            .toBeCalled(with: expectedParamsSix)
+            .toReturn(expectedReturnsSix)
         mockedStruct
             .expect(\.addSeven)
             .toBeCalled(exactly: 1000)
-            .with(expectedParamsSeven)
-            .returning(expectedReturnsSeven)
+            .toBeCalled(with: expectedParamsSeven)
+            .toReturn(expectedReturnsSeven)
         mockedStruct
             .expect(\.addEight)
             .toBeCalled(exactly: 1000)
-            .with(expectedParamsEight)
-            .returning(expectedReturnsEight)
+            .toBeCalled(with: expectedParamsEight)
+            .toReturn(expectedReturnsEight)
         mockedStruct
             .expect(\.addNine)
             .toBeCalled(exactly: 1000)
-            .with(expectedParamsNine)
-            .returning(expectedReturnsNine)
+            .toBeCalled(with: expectedParamsNine)
+            .toReturn(expectedReturnsNine)
         mockedStruct
             .expect(\.addTen)
             .toBeCalled(exactly: 1000)
-            .with(expectedParamsTen)
-            .returning(expectedReturnsTen)
+            .toBeCalled(with: expectedParamsTen)
+            .toReturn(expectedReturnsTen)
+    }
+
+    func testCloneMembers() throws {
+        let mockedStruct = Mocked(
+            mocking: SimpleStruct(someImmutableProp: 7, someMutableProp: "this is a string")
+        )
+
+        mockedStruct.clone(
+            function: mockedStruct.mocked.addToImmutableProp,
+            as: "addToImmutableProp"
+        )
+
+        var expectedParams: [Int] = .init()
+        var expectedReturns: [Int] = .init()
+
+        for i in 0..<1000 {
+            try mockedStruct.useClone("addToImmutableProp", returning: Int.self)(i)
+            expectedParams.append(i)
+            expectedReturns.append(i + 7)
+        }
+
+        mockedStruct
+            .expect("addToImmutableProp")
+            .toBeCalled(exactly: 1000)
+            .toBeCalled(with: expectedParams)
+            .toReturn(expectedReturns)
     }
 }

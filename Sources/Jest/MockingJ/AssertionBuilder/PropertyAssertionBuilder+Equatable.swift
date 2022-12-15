@@ -1,6 +1,6 @@
 import XCTest
 
-extension AssertionBuilder where Value: Equatable {
+extension PropertyAssertionBuilder where Value: Equatable {
     @inlinable
     @inline(__always)
     @discardableResult
@@ -10,7 +10,7 @@ extension AssertionBuilder where Value: Equatable {
         line: UInt = #line
 
     ) -> Self {
-        XCTAssertEqual(mocked[keyPath: targetKeyPath], expectedValue, file: file, line: line)
+        XCTAssertEqual(value, expectedValue, file: file, line: line)
         return self
     }
 }

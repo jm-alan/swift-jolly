@@ -1,27 +1,23 @@
 @usableFromInline
-struct AssertionBuilder<Mocked, Value> {
+struct PropertyAssertionBuilder<Mockable, Value> {
     @usableFromInline
-    let mocked: Mocked
+    let accessor: KeyPath<Mockable, Value>
     @usableFromInline
-    let targetKeyPath: KeyPath<Mocked, Value>
+    let value: Value
     @usableFromInline
-    let accessRecord: [PartialKeyPath<Mocked>: [Any]]
+    let accessRecord: [PartialKeyPath<Mockable>: [Any]]
     @usableFromInline
-    let writeRecord: [PartialKeyPath<Mocked>: [Any]]
+    let writeRecord: [PartialKeyPath<Mockable>: [Any]]
     @usableFromInline
-    let invocationRecord: [PartialKeyPath<Mocked>: [Any]]
+    let invocationRecord: [PartialKeyPath<Mockable>: [Any]]
+}
 
-    public init(
-        _ mocked: Mocked,
-        _ targetKeyPath: KeyPath<Mocked, Value>,
-        _ accessRecord: [PartialKeyPath<Mocked>: [Any]],
-        _ writeRecord: [PartialKeyPath<Mocked>: [Any]],
-        _ invocationRecord: [PartialKeyPath<Mocked>: [Any]]
-    ) {
-        self.mocked = mocked
-        self.targetKeyPath = targetKeyPath
-        self.accessRecord = accessRecord
-        self.writeRecord = writeRecord
-        self.invocationRecord = invocationRecord
-    }
+@usableFromInline
+struct InvocableAssertionBuilder<Value> {
+    @usableFromInline
+    let memberFnName: String
+    @usableFromInline
+    let memberFn: Value
+    @usableFromInline
+    let invocationRecord: [String: [Any]]
 }
