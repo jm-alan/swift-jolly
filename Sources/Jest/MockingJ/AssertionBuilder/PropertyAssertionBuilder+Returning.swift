@@ -1,10 +1,10 @@
 import XCTest
 
-extension AssertionBuilder {
+extension PropertyAssertionBuilder {
     @inlinable
     @inline(__always)
     @discardableResult
-    func returning<Return>(
+    func toReturn<Return>(
         _ expectedReturns: [Return],
         file: StaticString = #file,
         line: UInt = #line
@@ -20,7 +20,7 @@ extension AssertionBuilder {
             return self
         }
         guard
-            let invocationRecordEntry = invocationRecord[targetKeyPath],
+            let invocationRecordEntry = invocationRecord[accessor],
             !invocationRecordEntry.isEmpty
         else {
             XCTFail("Function was never invoked", file: file, line: line)

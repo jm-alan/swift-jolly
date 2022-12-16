@@ -2,7 +2,7 @@ extension Mocked {
     @inlinable
     @inline(__always)
     subscript<T>(key: KeyPath<Mockable, T>) -> T {
-        let value = Mocked.time(
+        let value = Self.time(
             mocked[keyPath: key],
             originatingFrom: key,
             storingResultIn: &accessTimeRecord
@@ -15,7 +15,7 @@ extension Mocked {
     @inline(__always)
     subscript<T>(key: WritableKeyPath<Mockable, T>) -> T {
         get {
-            let value = Mocked.time(
+            let value = Self.time(
                 mocked[keyPath: key],
                 originatingFrom: key,
                 storingResultIn: &accessTimeRecord
@@ -24,7 +24,7 @@ extension Mocked {
             return value
         }
         set(value) {
-            Mocked.time(
+            Self.time(
                 mocked[keyPath: key] = value,
                 originatingFrom: key,
                 storingResultIn: &writeTimeRecord
@@ -39,12 +39,12 @@ extension Mocked {
         key: KeyPath<Mockable, (Param) -> Return>
     ) -> (Param) -> Return {
         let mockedFunction: (Param) -> Return = { [self] param in
-            let value = Mocked.time(
+            let value = Self.time(
                 mocked[keyPath: key](param),
                 originatingFrom: key,
-                storingResultIn: &self.invocationTimeRecord
+                storingResultIn: &self.closureInvocationTimeRecord
             )
-            makeInvocationRecord(for: key, with: param, returning: value)
+            makeClosureInvocationRecord(for: key, with: param, returning: value)
             return value
         }
         return mockedFunction
@@ -56,12 +56,12 @@ extension Mocked {
         key: KeyPath<Mockable, (Param1, Param2) -> Return>
     ) -> (Param1, Param2) -> Return {
         let mockedFunction: (Param1, Param2) -> Return = { [self] param1, param2 in
-            let value = Mocked.time(
+            let value = Self.time(
                 mocked[keyPath: key](param1, param2),
                 originatingFrom: key,
-                storingResultIn: &self.invocationTimeRecord
+                storingResultIn: &self.closureInvocationTimeRecord
             )
-            makeInvocationRecord(for: key, with: (param1, param2), returning: value)
+            makeClosureInvocationRecord(for: key, with: (param1, param2), returning: value)
             return value
         }
         return mockedFunction
@@ -73,12 +73,12 @@ extension Mocked {
         key: KeyPath<Mockable, (Param1, Param2, Param3) -> Return>
     ) -> (Param1, Param2, Param3) -> Return {
         let mockedFunction: (Param1, Param2, Param3) -> Return = { [self] param1, param2, param3 in
-            let value = Mocked.time(
+            let value = Self.time(
                 mocked[keyPath: key](param1, param2, param3),
                 originatingFrom: key,
-                storingResultIn: &self.invocationTimeRecord
+                storingResultIn: &self.closureInvocationTimeRecord
             )
-            makeInvocationRecord(for: key, with: (param1, param2, param3), returning: value)
+            makeClosureInvocationRecord(for: key, with: (param1, param2, param3), returning: value)
             return value
         }
         return mockedFunction
@@ -91,12 +91,12 @@ extension Mocked {
     ) -> (Param1, Param2, Param3, Param4) -> Return {
         let mockedFunction: (Param1, Param2, Param3, Param4)
             -> Return = { [self] param1, param2, param3, param4 in
-                let value = Mocked.time(
+                let value = Self.time(
                     mocked[keyPath: key](param1, param2, param3, param4),
                     originatingFrom: key,
-                    storingResultIn: &self.invocationTimeRecord
+                    storingResultIn: &self.closureInvocationTimeRecord
                 )
-                makeInvocationRecord(
+                makeClosureInvocationRecord(
                     for: key,
                     with: (param1, param2, param3, param4),
                     returning: value
@@ -113,12 +113,12 @@ extension Mocked {
     ) -> (Param1, Param2, Param3, Param4, Param5) -> Return {
         let mockedFunction: (Param1, Param2, Param3, Param4, Param5)
             -> Return = { [self] param1, param2, param3, param4, param5 in
-                let value = Mocked.time(
+                let value = Self.time(
                     mocked[keyPath: key](param1, param2, param3, param4, param5),
                     originatingFrom: key,
-                    storingResultIn: &self.invocationTimeRecord
+                    storingResultIn: &self.closureInvocationTimeRecord
                 )
-                makeInvocationRecord(
+                makeClosureInvocationRecord(
                     for: key,
                     with: (param1, param2, param3, param4, param5),
                     returning: value
@@ -135,12 +135,12 @@ extension Mocked {
     ) -> (Param1, Param2, Param3, Param4, Param5, Param6) -> Return {
         let mockedFunction: (Param1, Param2, Param3, Param4, Param5, Param6)
             -> Return = { [self] param1, param2, param3, param4, param5, param6 in
-                let value = Mocked.time(
+                let value = Self.time(
                     mocked[keyPath: key](param1, param2, param3, param4, param5, param6),
                     originatingFrom: key,
-                    storingResultIn: &self.invocationTimeRecord
+                    storingResultIn: &self.closureInvocationTimeRecord
                 )
-                makeInvocationRecord(
+                makeClosureInvocationRecord(
                     for: key,
                     with: (param1, param2, param3, param4, param5, param6),
                     returning: value
@@ -167,7 +167,7 @@ extension Mocked {
             Param6,
             Param7
         ) -> Return = { [self] param1, param2, param3, param4, param5, param6, param7 in
-            let value = Mocked.time(
+            let value = Self.time(
                 mocked[keyPath: key](
                     param1,
                     param2,
@@ -178,9 +178,9 @@ extension Mocked {
                     param7
                 ),
                 originatingFrom: key,
-                storingResultIn: &self.invocationTimeRecord
+                storingResultIn: &self.closureInvocationTimeRecord
             )
-            makeInvocationRecord(
+            makeClosureInvocationRecord(
                 for: key,
                 with: (param1, param2, param3, param4, param5, param6, param7),
                 returning: value
@@ -208,7 +208,7 @@ extension Mocked {
             Param7,
             Param8
         ) -> Return = { [self] param1, param2, param3, param4, param5, param6, param7, param8 in
-            let value = Mocked.time(
+            let value = Self.time(
                 mocked[keyPath: key](
                     param1,
                     param2,
@@ -220,9 +220,9 @@ extension Mocked {
                     param8
                 ),
                 originatingFrom: key,
-                storingResultIn: &self.invocationTimeRecord
+                storingResultIn: &self.closureInvocationTimeRecord
             )
-            makeInvocationRecord(
+            makeClosureInvocationRecord(
                 for: key,
                 with: (param1, param2, param3, param4, param5, param6, param7, param8),
                 returning: value
@@ -272,7 +272,7 @@ extension Mocked {
             Param9
         ) -> Return =
             { [self] param1, param2, param3, param4, param5, param6, param7, param8, param9 in
-                let value = Mocked.time(
+                let value = Self.time(
                     mocked[keyPath: key](
                         param1,
                         param2,
@@ -285,9 +285,9 @@ extension Mocked {
                         param9
                     ),
                     originatingFrom: key,
-                    storingResultIn: &self.invocationTimeRecord
+                    storingResultIn: &self.closureInvocationTimeRecord
                 )
-                makeInvocationRecord(
+                makeClosureInvocationRecord(
                     for: key,
                     with: (param1, param2, param3, param4, param5, param6, param7, param8, param9),
                     returning: value
@@ -351,7 +351,7 @@ extension Mocked {
             Param10
         ) -> Return =
             { [self] param1, param2, param3, param4, param5, param6, param7, param8, param9, param10 in
-                let value = Mocked.time(
+                let value = Self.time(
                     mocked[keyPath: key](
                         param1,
                         param2,
@@ -365,9 +365,9 @@ extension Mocked {
                         param10
                     ),
                     originatingFrom: key,
-                    storingResultIn: &self.invocationTimeRecord
+                    storingResultIn: &self.closureInvocationTimeRecord
                 )
-                makeInvocationRecord(
+                makeClosureInvocationRecord(
                     for: key,
                     with: (
                         param1,
