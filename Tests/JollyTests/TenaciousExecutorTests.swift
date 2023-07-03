@@ -1,7 +1,7 @@
 @testable import Jolly
 import XCTest
 
-final class DurableExecutorTests: XCTestCase {
+final class TenaciousExecutorTests: XCTestCase {
     struct ExecutorTestError: Error {
         let message: String
 
@@ -47,10 +47,10 @@ final class DurableExecutorTests: XCTestCase {
             return attempts
         }
         let countTo5: TenaciousExecutor<Int> =
-            .performing(try counter())
-            .with(name: "simple exponential test")
-            .with(backoffMethod: .exponential(500))
-            .with(attemptsLimitedTo: 5)
+            try .performing(counter())
+                .with(name: "simple exponential test")
+                .with(backoffMethod: .exponential(500))
+                .with(attemptsLimitedTo: 5)
 
         let timedResult = try Stopwatch.time(countTo5.run())
 
@@ -124,7 +124,7 @@ final class DurableExecutorTests: XCTestCase {
                 return attempts
             }
             .with(name: "simple custom test")
-            .with(backoffMethod: .custom { (attempts, maxAttempts, maxWait, lastError) in
+            .with(backoffMethod: .custom { attempts, _, _, _ in
                 attempts * 1000
             })
             .with(attemptsLimitedTo: 5)
@@ -199,7 +199,7 @@ final class DurableExecutorTests: XCTestCase {
         let countTo5: TenaciousExecutor<Int> =
             .performing {
                 attempts += 1
-                if (attempts < 5) {
+                if attempts < 5 {
                     throw ExecutorTestError.from(attempts: attempts)
                 }
                 return attempts
@@ -231,7 +231,7 @@ final class DurableExecutorTests: XCTestCase {
     func testExhaustedAttempts() {
         let noAttempts: TenaciousExecutor<Void> =
             .performing { throw ExecutorTestError(message: "Should fail immediately") }
-            .with(attemptsLimitedTo: 0)
+                .with(attemptsLimitedTo: 0)
 
         XCTAssertThrowsError(try noAttempts.run())
     }
