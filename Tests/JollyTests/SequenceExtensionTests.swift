@@ -1,103 +1,113 @@
-// @testable import Jolly
-// import Jest
-// import XCTest
+import Jest
+@testable import Jolly
+import XCTest
 
-// final class SequenceExtensionTests: XCTestCase {
-//     static var someArr: [Int] = .init()
+final class SequenceExtensionTests: XCTestCase {
+    static var someArr: [Int] = .init()
 
-//     override class func setUp() {
-//         someArr.reserveCapacity(10000000)
-//         for i in 0..<10000000 {
-//             someArr.append(i)
-//         }
-//     }
+    static let arrCapacity = 1_000_000
 
-//     override class func tearDown() {
-//         someArr = .init()
-//     }
+    override class func setUp() {
+        someArr.reserveCapacity(arrCapacity)
+        for _ in 0..<arrCapacity {
+            someArr.append(Int.random(in: 1...max(arrCapacity, 1_000_000)))
+        }
+    }
 
-//     func testSafeAccess() {
-//         let smallArr = [0, 1, 2, 3]
-//         let safeSlice = smallArr[0...3]
+    override class func tearDown() {
+        someArr = .init()
+    }
 
-//         XCTAssertNotNil(smallArr[3])
-//         XCTAssertNil(smallArr[safe: 4])
-//         XCTAssertEqual(smallArr[safe: -1000...1000], safeSlice)
-//         XCTAssertEqual(smallArr[safe: -1000...3], safeSlice)
-//         XCTAssertEqual(smallArr[safe: 0...1000], safeSlice)
-//     }
+    func testSafeAccess() {
+        let smallArr = [0, 1, 2, 3]
+        let safeSlice = smallArr[0...3]
 
-//     struct SimpleStruct {
-//         let someVal: Int
-//     }
+        XCTAssertNotNil(smallArr[3])
+        XCTAssertNil(smallArr[safe: 4])
+        XCTAssertEqual(smallArr[safe: -1000...1000], safeSlice)
+        XCTAssertEqual(smallArr[safe: -1000...3], safeSlice)
+        XCTAssertEqual(smallArr[safe: 0...1000], safeSlice)
+    }
 
-//     func testConcurrentForEach() async {
-//         var counter: AtomicValue<Int> = .init()
-//         let expectedCounter: Int = (9999999 * 10000000) / 2
+    struct SimpleStruct {
+        let someVal: Int
+    }
 
-//         await AsyncAssertNoThrow(
-//             try await Self.someArr.concurrentForEach { counter += $0 }
-//         )
-//         XCTAssert(expectedCounter == counter)
-//     }
+    func testConcurrentForEach() async {
+        var counter: AtomicValue<Int> = .init()
+        let expectedCounter: Int = await Self.someArr.reduce(0, +)
 
-//     func testConcurrentMap() async {
-//         let expectedMapResult: [Int] = Self.someArr.map { $0 * 2 }
-//         var computedMapResult: [Int] = .init()
+        try await AsyncAssertNoThrow(
+            await Self.someArr.concurrentForEach { counter += $0 }
+        )
 
-//         await AsyncAssertNoThrow(
-//             try await computedMapResult = Self.someArr.concurrentMap { $0 * 2 }
-//         )
-//         for i in 0..<10000000 {
-//             if expectedMapResult[i] != computedMapResult[i] {
-//                 XCTFail("Failed at index \(i); expected: \(expectedMapResult[i]) but found \(computedMapResult[i])")
-//                 return
-//             }
-//         }
-//     }
+        counter.use { (val: Int) in
+            XCTAssertEqual(expectedCounter, val)
+        }
+    }
 
-//     func testConcurrency() async throws {
-//         var expectedEvensOnly: [Int] = .init()
-//         var computedEvensOnly: [Int] = .init()
+    func testConcurrentMap() async {
+        let expectedMapResult: [Int] = Self.someArr.map { $0 * 2 }
+        var computedMapResult: [Int] = .init()
 
-//         var expectedOddsOnly: [Int] = .init()
-//         var computedOddsOnly: [Int] = .init()
+        try await AsyncAssertNoThrow(
+            await computedMapResult = Self.someArr.concurrentMap { $0 * 2 }
+        )
 
-//         var expectedDoubledEvens: [Int] = .init()
-//         var computedDoubledEvens: [Int] = .init()
+        for i in 0..<Self.arrCapacity {
+            if expectedMapResult[i] != computedMapResult[i] {
+                XCTFail(
+                    "Failed at index \(i); expected: \(expectedMapResult[i]) but found \(computedMapResult[i])"
+                )
+                return
+            }
+        }
+    }
 
-//         var simpleStructsDoSatisfy: [SimpleStruct] = .init()
-//         var simpleStructsDoNotSatisfy: [SimpleStruct] = .init()
+    func testConcurrency() async throws {
+        var expectedEvensOnly: [Int] = .init()
+        var computedEvensOnly: [Int] = .init()
 
-//         for i in 0..<1000000 {
-//             if i % 2 == 0 { expectedEvensOnly.append(i) }
-//             if i % 2 == 0 { expectedDoubledEvens.append(i * 2) }
-//             if i % 2 != 0 { expectedOddsOnly.append(i) }
-//             simpleStructsDoSatisfy.append(.init(someVal: 1000 + i))
-//             simpleStructsDoNotSatisfy.append(.init(someVal: 1000000 - i))
-//         }
-//         await AsyncAssertNoThrow(
-//             try await computedEvensOnly = Self.someArr.concurrentNilter { $0 % 2 == 0 ? $0 : nil }
-//         )
-//         await AsyncAssertNoThrow(
-//             try await computedOddsOnly = Self.someArr.concurrentFilter { $0 % 2 != 0 }
-//         )
-//         await AsyncAssertNoThrow(
-//             try await computedDoubledEvens = Self.someArr.concurrentCompactMap {
-//                 $0 % 2 == 0 ? $0 * 2 : nil
-//             }
-//         )
-//         try await AsyncAssertTrue(
-//             try await simpleStructsDoSatisfy.concurrentAllSatisfy { $0.someVal >= 1000 }
-//         )
-//         try await AsyncAssertFalse(
-//             try await simpleStructsDoNotSatisfy.concurrentAllSatisfy { $0.someVal >= 1000 }
-//         )
-//         try await AsyncAssertTrue(
-//             try await simpleStructsDoSatisfy.concurrentContains { $0.someVal >= 1000000 }
-//         )
-//         XCTAssertEqual(expectedEvensOnly, computedEvensOnly)
-//         XCTAssertEqual(expectedOddsOnly, computedOddsOnly)
-//         XCTAssertEqual(expectedDoubledEvens, computedDoubledEvens)
-//     }
-// }
+        var expectedOddsOnly: [Int] = .init()
+        var computedOddsOnly: [Int] = .init()
+
+        var expectedDoubledEvens: [Int] = .init()
+        var computedDoubledEvens: [Int] = .init()
+
+        var simpleStructsDoSatisfy: [SimpleStruct] = .init()
+        var simpleStructsDoNotSatisfy: [SimpleStruct] = .init()
+
+        for i in 0..<Self.arrCapacity {
+            if Self.someArr[i] % 2 == 0 { expectedEvensOnly.append(Self.someArr[i]) }
+            if Self.someArr[i] % 2 == 0 { expectedDoubledEvens.append(Self.someArr[i] * 2) }
+            if Self.someArr[i] % 2 != 0 { expectedOddsOnly.append(Self.someArr[i]) }
+            simpleStructsDoSatisfy.append(.init(someVal: 1_000_000 + Self.someArr[i]))
+            simpleStructsDoNotSatisfy.append(.init(someVal: 1_000_000 - Self.someArr[i]))
+        }
+
+        try await AsyncAssertNoThrow(
+            await computedEvensOnly = Self.someArr.concurrentNilter { $0 % 2 == 0 ? $0 : nil }
+        )
+        try await AsyncAssertNoThrow(
+            await computedOddsOnly = Self.someArr.concurrentFilter { $0 % 2 != 0 }
+        )
+        try await AsyncAssertNoThrow(
+            await computedDoubledEvens = Self.someArr.concurrentCompactMap {
+                $0 % 2 == 0 ? $0 * 2 : nil
+            }
+        )
+        try await AsyncAssertTrue(
+            await simpleStructsDoSatisfy.concurrentAllSatisfy { $0.someVal >= 1000 }
+        )
+        try await AsyncAssertFalse(
+            await simpleStructsDoNotSatisfy.concurrentAllSatisfy { $0.someVal >= 1_000_000 }
+        )
+        try await AsyncAssertTrue(
+            await simpleStructsDoSatisfy.concurrentContains { $0.someVal >= 1_000_000 }
+        )
+
+        XCTAssertEqual(expectedEvensOnly, computedEvensOnly)
+        XCTAssertEqual(expectedOddsOnly, computedOddsOnly)
+        XCTAssertEqual(expectedDoubledEvens, computedDoubledEvens)
+    }
+}
