@@ -1,10 +1,10 @@
-// swift-tools-version:5.7
+// swift-tools-version:5.9
 import PackageDescription
 
 let package = Package(
     name: "swift-jolly",
     platforms: [
-        .macOS(.v12),
+        .macOS(.v13),
     ],
     products: [
         .library(name: "Jolly", targets: ["Jolly"]),
@@ -14,9 +14,7 @@ let package = Package(
         .package(
             url: "https://github.com/apple/swift-collections.git",
             from: "1.0.2"
-        ),
-        .package(url: "https://github.com/vapor/fluent", from: "4.5.0"),
-        .package(url: "https://github.com/vapor/fluent-postgres-driver", from: "2.0.0"),
+        )
     ],
     targets: [
         .target(name: "Jolly", dependencies: [
