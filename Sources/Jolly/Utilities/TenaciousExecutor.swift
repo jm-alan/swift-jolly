@@ -3,12 +3,12 @@ import Foundation
 public class TenaciousExecutor<T> {
     var name: String = UUID().uuidString
     var attempts: Int = 0
-    var maxAttempts: Int = Int.max
+    var maxAttempts: Int = .max
     var lastError: Error!
     var errors: [Error] = []
     var backoffMethod: BackoffMethod = .fixed(0)
     var operation: (() throws -> T)?
-    var maxBackoffTime: Int = Int.max
+    var maxBackoffTime: Int = .max
     var errorHandler: (TenaciousExecutor, Error) -> Void = {
         print("Executor '\($0.name)' failed on attempt \($0.attempts) with error: \($1)")
     }
@@ -18,7 +18,6 @@ public class TenaciousExecutor<T> {
         self.name = name
         return self
     }
-
 
     @inline(__always)
     func with(backoffMethod: BackoffMethod) -> Self {
@@ -55,7 +54,7 @@ public class TenaciousExecutor<T> {
             computedAttempts += 1
             totalLifetime += maxBackoffTime
         }
-        self.maxAttempts = computedAttempts
+        maxAttempts = computedAttempts
         return self
     }
 
@@ -69,10 +68,9 @@ public class TenaciousExecutor<T> {
 
     @inline(__always)
     static func performing(
-        _ operation: @escaping () throws -> T,
-        appliedTo existingExecutor: TenaciousExecutor? = nil
+        _ operation: @escaping () throws -> T
     ) -> TenaciousExecutor {
-        let executor = existingExecutor ?? .init()
+        let executor: TenaciousExecutor = .init()
         executor.operation = operation
         return executor
     }
@@ -87,9 +85,9 @@ public class TenaciousExecutor<T> {
     @inline(__always)
     func getNextRetryInterval(given currentAttempts: Int? = nil) -> Int {
         let attempts = currentAttempts ?? self.attempts
-        switch self.backoffMethod {
+        switch backoffMethod {
         case let .fixed(backoffTime):
-            return min(backoffTime, maxBackoffTime);
+            return min(backoffTime, maxBackoffTime)
         case let .fixedUniformInterval(interval):
             return min(.random(in: interval), maxBackoffTime)
         case let .exponential(initialBackoffTime, growthFactor):
@@ -116,7 +114,7 @@ public class TenaciousExecutor<T> {
     }
 
     @inline(__always)
-    func run () throws -> T {
+    func run() throws -> T {
         guard let operation = operation else {
             throw ExecutorConfigurationError(
                 message: "No operation was provided to execute"
@@ -183,7 +181,8 @@ public class TenaciousExecutor<T> {
         /// A means for providing a custom calculator to determine the next retry time
         ///
         /// - Parameters:
-        ///     - CustomBackoffGenerator: See ``TenaciousExecutor/BackoffMethod/CustomBackoffGenerator``
+        ///     - CustomBackoffGenerator: See
+        /// ``TenaciousExecutor/BackoffMethod/CustomBackoffGenerator``
         case custom(CustomBackoffGenerator)
 
         /// - Parameters:
