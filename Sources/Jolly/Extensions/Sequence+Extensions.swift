@@ -71,17 +71,28 @@ public extension Sequence where Self: RandomAccessCollection, Self: RangeReplace
         )
         let divisionLength: Int = .init((Double(count) / Double(divisions)).rounded(.up))
 
-        return try await withThrowingTaskGroup(of: R.self) { taskGroup in
+        return try await withThrowingTaskGroup(of: (Index, R).self) { taskGroup in
             var currentIndex: Index = startIndex
+
             while currentIndex < endIndex {
                 let stableCurrentIndex: Index = currentIndex
                 let nextIndex: Index = index(stableCurrentIndex, offsetBy: divisionLength)
+
                 taskGroup.addTask {
-                    try await self[safe: stableCurrentIndex..<nextIndex].map(transform)
+                    try (
+                        stableCurrentIndex,
+                        await self[safe: stableCurrentIndex..<nextIndex]
+                            .map(transform)
+                    )
                 }
+
                 currentIndex = nextIndex
             }
-            return try await taskGroup.reduce(into: .init()) { $0.append(contentsOf: $1) }
+
+            return try await taskGroup
+                .reduce(into: []) { $0.append($1) }
+                .sorted { $0.0 < $1.0 }
+                .reduce(into: .init()) { $0.append(contentsOf: $1.1) }
         }
     }
 
@@ -97,17 +108,25 @@ public extension Sequence where Self: RandomAccessCollection, Self: RangeReplace
         )
         let divisionLength: Int = .init((Double(count) / Double(divisions)).rounded(.up))
 
-        return try await withThrowingTaskGroup(of: R.self) { taskGroup in
+        return try await withThrowingTaskGroup(of: (Index, R).self) { taskGroup in
             var currentIndex: Index = startIndex
+
             while currentIndex < endIndex {
                 let stableCurrentIndex: Index = currentIndex
                 let nextIndex: Index = index(stableCurrentIndex, offsetBy: divisionLength)
                 taskGroup.addTask {
-                    try await self[safe: stableCurrentIndex..<nextIndex].compactMap(transform)
+                    try (
+                        stableCurrentIndex,
+                        await self[safe: stableCurrentIndex..<nextIndex].compactMap(transform)
+                    )
                 }
                 currentIndex = nextIndex
             }
-            return try await taskGroup.reduce(into: .init()) { $0.append(contentsOf: $1) }
+
+            return try await taskGroup
+                .reduce(into: []) { $0.append($1) }
+                .sorted { $0.0 < $1.0 }
+                .reduce(into: .init()) { $0.append(contentsOf: $1.1) }
         }
     }
 
@@ -124,18 +143,26 @@ public extension Sequence where Self: RandomAccessCollection, Self: RangeReplace
         let divisionLength: Int = .init((Double(count) / Double(divisions)).rounded(.up))
 
         return try await withThrowingTaskGroup(
-            of: SubSequence.self
+            of: (Index, SubSequence).self
         ) { taskGroup in
             var currentIndex: Index = startIndex
+
             while currentIndex < endIndex {
                 let stableCurrentIndex: Index = currentIndex
                 let nextIndex: Index = index(stableCurrentIndex, offsetBy: divisionLength)
                 taskGroup.addTask {
-                    try await self[safe: stableCurrentIndex..<nextIndex].filter(isIncluded)
+                    try (
+                        stableCurrentIndex,
+                        await self[safe: stableCurrentIndex..<nextIndex].filter(isIncluded)
+                    )
                 }
                 currentIndex = nextIndex
             }
-            return try await taskGroup.reduce(into: .init()) { $0.append(contentsOf: $1) }
+
+            return try await taskGroup
+                .reduce(into: []) { $0.append($1) }
+                .sorted { $0.0 < $1.0 }
+                .reduce(into: .init()) { $0.append(contentsOf: $1.1) }
         }
     }
 
@@ -152,18 +179,25 @@ public extension Sequence where Self: RandomAccessCollection, Self: RangeReplace
         let divisionLength: Int = .init((Double(count) / Double(divisions)).rounded(.up))
 
         return try await withThrowingTaskGroup(
-            of: SubSequence.self
+            of: (Index, SubSequence).self
         ) { taskGroup in
             var currentIndex: Index = startIndex
             while currentIndex < endIndex {
                 let stableCurrentIndex: Index = currentIndex
                 let nextIndex: Index = index(stableCurrentIndex, offsetBy: divisionLength)
                 taskGroup.addTask {
-                    try await self[safe: stableCurrentIndex..<nextIndex].nilter(isNil)
+                    try (
+                        stableCurrentIndex,
+                        await self[safe: stableCurrentIndex..<nextIndex].nilter(isNil)
+                    )
                 }
                 currentIndex = nextIndex
             }
-            return try await taskGroup.reduce(into: .init()) { $0.append(contentsOf: $1) }
+
+            return try await taskGroup
+                .reduce(into: []) { $0.append($1) }
+                .sorted { $0.0 < $1.0 }
+                .reduce(into: .init()) { $0.append(contentsOf: $1.1) }
         }
     }
 
@@ -181,6 +215,7 @@ public extension Sequence where Self: RandomAccessCollection, Self: RangeReplace
 
         return try await withThrowingTaskGroup(of: Bool.self) { taskGroup in
             var currentIndex: Index = startIndex
+
             while currentIndex < endIndex {
                 let stableCurrentIndex: Index = currentIndex
                 let nextIndex: Index = index(stableCurrentIndex, offsetBy: divisionLength)
@@ -189,6 +224,7 @@ public extension Sequence where Self: RandomAccessCollection, Self: RangeReplace
                 }
                 currentIndex = nextIndex
             }
+
             return try await taskGroup.allSatisfy(==true)
         }
     }
@@ -207,6 +243,7 @@ public extension Sequence where Self: RandomAccessCollection, Self: RangeReplace
 
         return try await withThrowingTaskGroup(of: Bool.self) { taskGroup in
             var currentIndex: Index = startIndex
+
             while currentIndex < endIndex {
                 let stableCurrentIndex: Index = currentIndex
                 let nextIndex: Index = index(stableCurrentIndex, offsetBy: divisionLength)
@@ -217,6 +254,7 @@ public extension Sequence where Self: RandomAccessCollection, Self: RangeReplace
                 }
                 currentIndex = nextIndex
             }
+
             return try await taskGroup.contains(where: ==true)
         }
     }
