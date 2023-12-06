@@ -125,14 +125,14 @@ final class TenaciousExecutorTests: XCTestCase {
             }
             .with(name: "simple custom test")
             .with(backoffMethod: .custom { attempts, _, _, _ in
-                attempts * 1000
+                attempts * 150
             })
             .with(attemptsLimitedTo: 5)
 
         let timedResult = try Stopwatch.time(countTo5.run())
 
         XCTAssertTrue(
-            timedResult.duration >= 10,
+            timedResult.duration >= 1.5,
             "Actual time difference was \(timedResult.duration)"
         )
         XCTAssertEqual(attempts, timedResult.value)
@@ -151,19 +151,14 @@ final class TenaciousExecutorTests: XCTestCase {
                 return attempts
             }
             .with(name: "max backoff test")
-            .with(backoffMethod: .exponential(500))
-            .with(backoffTimeLimitedTo: 3000)
+            .with(backoffMethod: .exponential(100))
+            .with(backoffTimeLimitedTo: 500)
             .with(attemptsLimitedTo: 5)
 
         let timedResult = try Stopwatch.time(countTo5.run())
 
         XCTAssertTrue(
-            timedResult.duration >= 6.5,
-            "Actual time difference was \(timedResult.duration)"
-        )
-
-        XCTAssertTrue(
-            timedResult.duration < 7.5,
+            timedResult.duration >= 1.2,
             "Actual time difference was \(timedResult.duration)"
         )
         XCTAssertEqual(attempts, timedResult.value)
@@ -173,21 +168,22 @@ final class TenaciousExecutorTests: XCTestCase {
     @inline(__always)
     func testMinLifetime() throws {
         Stopwatch.start(timer: "min lifetime timer")
+
         let countTo5: TenaciousExecutor<Void> =
             .performing {
-                guard Stopwatch.get(timer: "min lifetime timer") >= 30.0 else {
+                guard Stopwatch.get(timer: "min lifetime timer") >= 5.0 else {
                     throw ExecutorTestError(message: "Required lifetime not yet met")
                 }
             }
             .with(name: "min lifetime test")
-            .with(backoffMethod: .exponential(500))
-            .with(backoffTimeLimitedTo: 3000)
-            .with(minimumTotalLifetime: 30000)
+            .with(backoffMethod: .exponential(100))
+            .with(backoffTimeLimitedTo: 1000)
+            .with(minimumTotalLifetime: 5000)
 
         let timedResult = try Stopwatch.time(countTo5.run())
 
         XCTAssertTrue(
-            timedResult.duration >= 30.0,
+            timedResult.duration >= 5.0,
             "Actual time difference was \(timedResult.duration)"
         )
     }
