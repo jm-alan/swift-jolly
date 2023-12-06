@@ -23,3 +23,6 @@ public struct Mutex {
         try expression()
     }
 }
+
+// NSLock: Sendable, Trust Me Bro™️
+extension Mutex: @unchecked Sendable {}
