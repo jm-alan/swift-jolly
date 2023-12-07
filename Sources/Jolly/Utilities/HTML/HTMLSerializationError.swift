@@ -1,9 +1,9 @@
 public struct HTMLSerializationError: Error {
     let tag: HTMLTag
-    let children: [HTMLTag]
+    let children: [HTMLElement]
     let message: String
 
-    public init(_ reason: Reason, tag: HTMLTag, children: [HTMLTag]) {
+    public init(_ reason: Reason, tag: HTMLTag, children: [HTMLElement]) {
         self.tag = tag
         self.children = children
         message = reason.toString()
