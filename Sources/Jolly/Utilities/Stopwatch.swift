@@ -87,8 +87,6 @@ public struct StopwatchResult<T> {
     public let value: T
     public let duration: TimeInterval
 
-    @inlinable
-    @inline(__always)
     public init(value: T, duration: TimeInterval) {
         self.value = value
         self.duration = duration

@@ -20,8 +20,6 @@ public struct KeyComparator<T, C> where C: Comparable {
         }
     }
 
-    @inlinable
-    @inline(__always)
     public init(
         lhs: KeyPath<T, C>,
         rhs: KeyPath<T, C>,
@@ -55,8 +53,6 @@ public struct ValueComparator<C> where C: Comparable {
         }
     }
 
-    @inlinable
-    @inline(__always)
     public init(lhs: C, rhs: C, method: ComparisonTypes = .equal) {
         self.lhs = lhs
         self.rhs = rhs
@@ -86,8 +82,6 @@ public struct KeyValComparator<T, C> where C: Comparable {
         }
     }
 
-    @inlinable
-    @inline(__always)
     public init(lhs: KeyPath<T, C>, rhs: C, method: ComparisonTypes = .equal) {
         self.lhs = lhs
         self.rhs = rhs
