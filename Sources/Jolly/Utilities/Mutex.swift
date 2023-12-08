@@ -1,9 +1,6 @@
 import Foundation
 
 public struct Mutex {
-    var name: String = UUID().uuidString
-    var lockReason: String? = nil
-
     @usableFromInline
     let lock: NSLock = .init()
 
