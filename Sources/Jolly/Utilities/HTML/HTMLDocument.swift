@@ -1,4 +1,4 @@
-public struct HTMLDocument {
+public class HTMLDocument {
     public var head: [HTMLElement]
     public var body: HTMLElement?
 
