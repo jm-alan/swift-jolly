@@ -1,4 +1,4 @@
-public class AtomicValue<Wrapped> {
+public final class AtomicValue<Wrapped> {
     @usableFromInline
     let mutex: Mutex = .init()
 
@@ -11,11 +11,10 @@ public class AtomicValue<Wrapped> {
     }
 
     @inlinable
-    public func use(in consumer: (inout Wrapped) throws -> Void) rethrows {
+    public func mut(in consumer: (inout Wrapped) throws -> Void) rethrows {
         try mutex.atomize(expression: consumer(&wrapped))
     }
 
-    @inlinable
     public init(wrapped: Wrapped) {
         self.wrapped = wrapped
     }
