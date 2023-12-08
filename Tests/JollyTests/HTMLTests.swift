@@ -9,19 +9,19 @@ final class HTMLTests: XCTestCase {
     }
 
     func testBasicElementComposition() throws {
-        let element: HTMLElement = .init(tag: .div)
+        let element: HTMLElement = .init(.div)
 
         try XCTAssertEqual("<div></div>", element.serialize())
     }
 
     func testVoidElementComposition() throws {
-        let element: HTMLElement = .init(tag: .img)
+        let element: HTMLElement = .init(.img)
 
         try XCTAssertEqual("<img>", element.serialize())
     }
 
     func testAttributes() throws {
-        var element: HTMLElement = .init(tag: .div)
+        let element: HTMLElement = .init(.div)
 
         element.attributes["onclick"] = .string("alert('Hi mom!')")
 
@@ -29,9 +29,9 @@ final class HTMLTests: XCTestCase {
     }
 
     func testHierarchicalComposition() throws {
-        var document: HTMLDocument = .init()
-        document.body = .init(tag: .body)
-        document.body!.children.append(HTMLElement(tag: .div))
+        let document: HTMLDocument = .init()
+        document.body = .init(.body)
+        document.body!.children.append(HTMLElement(.div))
         try XCTAssertEqual(
             "<!DOCTYPE html><html><body><div></div></body></html>",
             document.serialize()
@@ -39,9 +39,9 @@ final class HTMLTests: XCTestCase {
     }
 
     func testPrettyPrint() throws {
-        var document: HTMLDocument = .init()
-        document.body = .init(tag: .body)
-        document.body!.children.append(HTMLElement(tag: .div))
+        let document: HTMLDocument = .init()
+        document.body = .init(.body)
+        document.body!.children.append(HTMLElement(.div))
 
         try XCTAssertEqual(
             """
@@ -58,14 +58,14 @@ final class HTMLTests: XCTestCase {
     }
 
     func testStringChildren() throws {
-        var innermostDiv: HTMLElement = .init(tag: .div)
+        let innermostDiv: HTMLElement = .init(.div)
         innermostDiv.children.append("This is plain text")
 
-        var body: HTMLElement = .init(tag: .body)
+        let body: HTMLElement = .init(.body)
         body.children.append(innermostDiv)
         body.children.append("This is also plain text")
 
-        var document: HTMLDocument = .init()
+        let document: HTMLDocument = .init()
         document.body = body
 
         try XCTAssertEqual(
@@ -85,21 +85,21 @@ final class HTMLTests: XCTestCase {
     }
 
     func testEverything() throws {
-        var button: HTMLElement = .init(tag: .button)
+        let button: HTMLElement = .init(.button)
         button.children.append("Click me!")
         button.attributes["onclick"] = .string("alert('You did it!')")
 
-        var div: HTMLElement = .init(tag: .div)
+        let div: HTMLElement = .init(.div)
         div.children.append("This is plain text")
         div.children.append(button)
         div.attributes["class"] = .string("w-full h-full flex flex-col")
         div.attributes["id"] = .string("root")
 
-        var iframe: HTMLElement = .init(tag: .iframe)
+        let iframe: HTMLElement = .init(.iframe)
         iframe.attributes["src"] = .string("/live-reload.html")
         iframe.attributes["style"] = .string("display: none;")
 
-        var body: HTMLElement = .init(tag: .body)
+        let body: HTMLElement = .init(.body)
         body.children.append(div)
         body.children.append("This is also plain text")
         body.children.append(iframe)
