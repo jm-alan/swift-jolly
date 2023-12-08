@@ -87,21 +87,21 @@ public class TenaciousExecutor<T> {
         let attempts = currentAttempts ?? self.attempts
         switch backoffMethod {
         case let .fixed(backoffTime):
-            return min(backoffTime, maxBackoffTime)
+            return backoffTime <> maxBackoffTime
         case let .fixedUniformInterval(interval):
-            return min(.random(in: interval), maxBackoffTime)
+            return .random(in: interval) <> maxBackoffTime
         case let .exponential(initialBackoffTime, growthFactor):
             var computedBackoffTime = initialBackoffTime
             for _ in 1..<attempts {
                 computedBackoffTime *= growthFactor
             }
-            return min(computedBackoffTime, maxBackoffTime)
+            return computedBackoffTime <> maxBackoffTime
         case let .exponentialUniformInverval(interval, growthFactor):
             var computedBackoffTime: Int = .random(in: interval)
             for _ in 1..<attempts {
                 computedBackoffTime *= growthFactor
             }
-            return min(computedBackoffTime, maxBackoffTime)
+            return computedBackoffTime <> maxBackoffTime
         case let .custom(calculator):
             let customTime = calculator(
                 attempts,
@@ -109,7 +109,7 @@ public class TenaciousExecutor<T> {
                 maxBackoffTime,
                 lastError
             )
-            return min(customTime, maxBackoffTime)
+            return customTime <> maxBackoffTime
         }
     }
 
@@ -129,11 +129,7 @@ public class TenaciousExecutor<T> {
                 lastError = error
                 errors.append(error)
                 errorHandler(self, error)
-                Thread.sleep(
-                    forTimeInterval: .init(
-                        getNextRetryInterval()
-                    ) / 1000.0
-                )
+                Thread.sleep(forTimeInterval: .init(getNextRetryInterval()) / 1000.0)
             }
         } while attempts < maxAttempts
         throw lastError
