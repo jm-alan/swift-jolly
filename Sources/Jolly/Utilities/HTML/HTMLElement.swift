@@ -1,7 +1,17 @@
-public struct HTMLElement: HTMLSerializable {
+public class HTMLElement: HTMLSerializable {
     public let tag: HTMLTag
-    public var children: [HTMLSerializable] = .init()
-    public var attributes: [String: Attribute] = .init()
+    public var children: [HTMLSerializable]
+    public var attributes: [String: Attribute]
+
+    public init(
+        _ tag: HTMLTag,
+        children: [HTMLSerializable] = .init(),
+        attributes: [String: Attribute] = .init()
+    ) {
+        self.tag = tag
+        self.children = children
+        self.attributes = attributes
+    }
 
     @inlinable
     public var innerText: String {
