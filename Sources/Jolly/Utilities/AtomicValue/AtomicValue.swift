@@ -6,11 +6,13 @@ public final class AtomicValue<Wrapped> {
     var wrapped: Wrapped
 
     @inlinable
+    @inline(__always)
     public func use<T>(in consumer: (Wrapped) throws -> T) rethrows -> T {
         try mutex.atomize(expression: consumer(wrapped))
     }
 
     @inlinable
+    @inline(__always)
     public func mut(in consumer: (inout Wrapped) throws -> Void) rethrows {
         try mutex.atomize(expression: consumer(&wrapped))
     }
