@@ -37,9 +37,7 @@ final class SequenceExtensionTests: XCTestCase {
         var counter: AtomicValue<Int> = .init()
         let expectedCounter: Int = Self.someArr.reduce(0, +)
 
-        try await AsyncAssertNoThrow(
-            await Self.someArr.concurrentForEach { counter += $0 }
-        )
+        await Self.someArr.concurrentForEach { counter += $0 }
 
         counter.use { (val: Int) in
             XCTAssertEqual(expectedCounter, val)
@@ -50,9 +48,7 @@ final class SequenceExtensionTests: XCTestCase {
         let expectedMapResult: [Int] = Self.someArr.map { $0 * 2 }
         var computedMapResult: [Int] = .init()
 
-        try await AsyncAssertNoThrow(
-            await computedMapResult = Self.someArr.concurrentMap { $0 * 2 }
-        )
+        await computedMapResult = Self.someArr.concurrentMap { $0 * 2 }
 
         for i in 0..<Self.arrCapacity {
             if expectedMapResult[i] != computedMapResult[i] {
@@ -64,7 +60,7 @@ final class SequenceExtensionTests: XCTestCase {
         }
     }
 
-    func testConcurrency() async throws {
+    func testConcurrency() async {
         var expectedOddsOnly: [Int] = .init()
         var computedOddsOnly: [Int] = .init()
 
@@ -81,22 +77,19 @@ final class SequenceExtensionTests: XCTestCase {
             simpleStructsDoNotSatisfy.append(.init(someVal: 1_000_000 - Self.someArr[i]))
         }
 
-        try await AsyncAssertNoThrow(
-            await computedOddsOnly = Self.someArr.concurrentFilter { $0 % 2 != 0 }
+        await computedOddsOnly = Self.someArr.concurrentFilter { $0 % 2 != 0 }
+        await computedDoubledEvens = Self
+            .someArr
+            .concurrentCompactMap { $0 % 2 == 0 ? $0 * 2 : nil }
+
+        await AsyncAssert(await simpleStructsDoSatisfy.concurrentAllSatisfy { $0.someVal >= 1000 })
+        await AsyncAssert(
+            await simpleStructsDoSatisfy
+                .concurrentContains { $0.someVal >= 1_000_000 }
         )
-        try await AsyncAssertNoThrow(
-            await computedDoubledEvens = Self.someArr.concurrentCompactMap {
-                $0 % 2 == 0 ? $0 * 2 : nil
-            }
-        )
-        try await AsyncAssertTrue(
-            await simpleStructsDoSatisfy.concurrentAllSatisfy { $0.someVal >= 1000 }
-        )
-        try await AsyncAssertFalse(
-            await simpleStructsDoNotSatisfy.concurrentAllSatisfy { $0.someVal >= 1_000_000 }
-        )
-        try await AsyncAssertTrue(
-            await simpleStructsDoSatisfy.concurrentContains { $0.someVal >= 1_000_000 }
+        await AsyncAssertFalse(
+            await simpleStructsDoNotSatisfy
+                .concurrentAllSatisfy { $0.someVal >= 1_000_000 }
         )
 
         XCTAssertEqual(expectedOddsOnly, computedOddsOnly)
