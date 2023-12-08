@@ -1,42 +1,59 @@
 import Foundation
 
 public class TenaciousExecutor<T> {
+    @usableFromInline
     var name: String = UUID().uuidString
+    @usableFromInline
     var attempts: Int = 0
+    @usableFromInline
     var maxAttempts: Int = .max
+    @usableFromInline
     var lastError: Error!
+    @usableFromInline
     var errors: [Error] = []
+    @usableFromInline
     var backoffMethod: BackoffMethod = .fixed(0)
+    @usableFromInline
     var operation: (() throws -> T)?
+    @usableFromInline
     var maxBackoffTime: Int = .max
+    @usableFromInline
     var errorHandler: (TenaciousExecutor, Error) -> Void = {
         print("Executor '\($0.name)' failed on attempt \($0.attempts) with error: \($1)")
     }
 
+    @usableFromInline
+    init() {}
+
+    @inlinable
     @inline(__always)
     func with(name: String) -> Self {
         self.name = name
         return self
     }
 
+    @inlinable
     @inline(__always)
     func with(backoffMethod: BackoffMethod) -> Self {
         self.backoffMethod = backoffMethod
         return self
     }
 
+    @inlinable
     @inline(__always)
     func with(attemptsLimitedTo maxAttempts: Int) -> Self {
         self.maxAttempts = maxAttempts
         return self
     }
 
+    @inlinable
     @inline(__always)
     func with(backoffTimeLimitedTo maxBackoffTime: Int) -> Self {
         self.maxBackoffTime = maxBackoffTime
         return self
     }
 
+    @inlinable
     @inline(__always)
     func with(minimumTotalLifetime: Int) -> Self {
         var computedAttempts = 0
@@ -58,6 +75,7 @@ public class TenaciousExecutor<T> {
         return self
     }
 
+    @inlinable
     @inline(__always)
     func handlingErrors(
         with errorHandler: @escaping (TenaciousExecutor, Error) -> Void
@@ -66,6 +84,7 @@ public class TenaciousExecutor<T> {
         return self
     }
 
+    @inlinable
     @inline(__always)
     static func performing(
         _ operation: @escaping () throws -> T
@@ -75,6 +94,7 @@ public class TenaciousExecutor<T> {
         return executor
     }
 
+    @inlinable
     @inline(__always)
     static func performing(
         _ operation: @escaping @autoclosure () throws -> T
@@ -82,6 +102,7 @@ public class TenaciousExecutor<T> {
         return performing(operation)
     }
 
+    @inlinable
     @inline(__always)
     func getNextRetryInterval(given currentAttempts: Int? = nil) -> Int {
         let attempts = currentAttempts ?? self.attempts
@@ -113,6 +134,7 @@ public class TenaciousExecutor<T> {
         }
     }
 
+    @inlinable
     @inline(__always)
     func run() throws -> T {
         guard let operation = operation else {
@@ -135,8 +157,12 @@ public class TenaciousExecutor<T> {
         throw lastError
     }
 
+    @usableFromInline
     struct ExecutorConfigurationError: Error {
         let message: String
+
+        @usableFromInline
+        init(message: String) { self.message = message }
     }
 
     public enum BackoffMethod {
