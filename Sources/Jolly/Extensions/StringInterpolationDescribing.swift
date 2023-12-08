@@ -1,5 +1,5 @@
 public extension DefaultStringInterpolation {
-    @inline(__always)
+    @inlinable
     mutating func appendInterpolation<Object>(describing object: Object?) {
         appendInterpolation(String(describing: object))
     }
