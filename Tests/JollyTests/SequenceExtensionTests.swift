@@ -10,7 +10,7 @@ final class SequenceExtensionTests: XCTestCase {
     override class func setUp() {
         someArr.reserveCapacity(arrCapacity)
         for _ in 0..<arrCapacity {
-            someArr.append(Int.random(in: 1...max(arrCapacity, 1_000_000)))
+            someArr.append(Int.random(in: 1...(arrCapacity >< 1_000_000)))
         }
     }
 
