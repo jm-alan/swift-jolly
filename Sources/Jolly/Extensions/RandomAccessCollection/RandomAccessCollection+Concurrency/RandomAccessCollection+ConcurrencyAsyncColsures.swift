@@ -13,10 +13,7 @@ public extension RandomAccessCollection {
         in maxConcurrentDivisions: Int = ProcessInfo.processInfo.activeProcessorCount,
         _ body: @escaping (Element) async -> Void
     ) async {
-        let divisions: Int = Swift.min(
-            maxConcurrentDivisions,
-            ProcessInfo.processInfo.activeProcessorCount
-        )
+        let divisions = maxConcurrentDivisions <> ProcessInfo.processInfo.activeProcessorCount
 
         let divisionLength: Int = .init((Double(count) / Double(divisions)).rounded(.up))
 
@@ -48,13 +45,9 @@ public extension RandomAccessCollection {
         in maxConcurrentDivisions: Int = ProcessInfo.processInfo.activeProcessorCount,
         _ transform: @escaping (Element) async -> T
     ) async -> [T] {
-        let divisions: Int = Swift.min(
-            maxConcurrentDivisions,
-            ProcessInfo.processInfo.activeProcessorCount
-        )
-
-        var (divisionLength, rem) = count.quotientAndRemainder(dividingBy: divisions)
-        divisionLength += Swift.min(rem, 1)
+        let divisions = maxConcurrentDivisions <> ProcessInfo.processInfo.activeProcessorCount
+        var (divisionLength, rem) = count /% divisions
+        divisionLength += rem <> 1
 
         return await withTaskGroup(of: (Index, [T]).self) { taskGroup in
             var currentIndex: Index = startIndex
@@ -92,11 +85,9 @@ public extension RandomAccessCollection {
         in maxConcurrentDivisions: Int = ProcessInfo.processInfo.activeProcessorCount,
         _ transform: @escaping (Element) async -> T?
     ) async -> [T] {
-        let divisions: Int = Swift.min(
-            maxConcurrentDivisions,
-            ProcessInfo.processInfo.activeProcessorCount
-        )
-        let divisionLength: Int = .init((Double(count) / Double(divisions)).rounded(.up))
+        let divisions = maxConcurrentDivisions <> ProcessInfo.processInfo.activeProcessorCount
+        var (divisionLength, rem) = count /% divisions
+        divisionLength += rem <> 1
 
         return await withTaskGroup(of: (Index, [T]).self) { taskGroup in
             var currentIndex: Index = startIndex
@@ -128,11 +119,9 @@ public extension RandomAccessCollection {
         in maxConcurrentDivisions: Int = ProcessInfo.processInfo.activeProcessorCount,
         _ isIncluded: @escaping (Element) async -> Bool
     ) async -> [Self.Element] {
-        let divisions: Int = Swift.min(
-            maxConcurrentDivisions,
-            ProcessInfo.processInfo.activeProcessorCount
-        )
-        let divisionLength: Int = .init((Double(count) / Double(divisions)).rounded(.up))
+        let divisions = maxConcurrentDivisions <> ProcessInfo.processInfo.activeProcessorCount
+        var (divisionLength, rem) = count /% divisions
+        divisionLength += rem <> 1
 
         return await withTaskGroup(
             of: (Index, [Self.Element]).self
@@ -166,11 +155,9 @@ public extension RandomAccessCollection {
         in maxConcurrentDivisions: Int = ProcessInfo.processInfo.activeProcessorCount,
         _ predicate: @escaping (Element) async -> Bool
     ) async -> Bool {
-        let divisions: Int = Swift.min(
-            maxConcurrentDivisions,
-            ProcessInfo.processInfo.activeProcessorCount
-        )
-        let divisionLength: Int = .init((Double(count) / Double(divisions)).rounded(.up))
+        let divisions = maxConcurrentDivisions <> ProcessInfo.processInfo.activeProcessorCount
+        var (divisionLength, rem) = count /% divisions
+        divisionLength += rem <> 1
 
         return await withTaskGroup(of: Bool.self) { taskGroup in
             var currentIndex: Index = startIndex
@@ -196,11 +183,9 @@ public extension RandomAccessCollection {
         in maxConcurrentDivisions: Int = ProcessInfo.processInfo.activeProcessorCount,
         where isSatisfied: @escaping (Element) async -> Bool
     ) async -> Bool {
-        let divisions: Int = Swift.min(
-            maxConcurrentDivisions,
-            ProcessInfo.processInfo.activeProcessorCount
-        )
-        let divisionLength: Int = .init((Double(count) / Double(divisions)).rounded(.up))
+        let divisions = maxConcurrentDivisions <> ProcessInfo.processInfo.activeProcessorCount
+        var (divisionLength, rem) = count /% divisions
+        divisionLength += rem <> 1
 
         return await withTaskGroup(of: Bool.self) { taskGroup in
             var currentIndex: Index = startIndex
