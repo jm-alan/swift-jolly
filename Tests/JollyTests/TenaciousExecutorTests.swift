@@ -23,13 +23,13 @@ final class TenaciousExecutorTests: XCTestCase {
                 return attempts
             }
             .with(name: "simple fixed test")
-            .with(backoffMethod: .fixed(1000))
+            .with(backoffMethod: .fixed(300))
             .with(attemptsLimitedTo: 5)
 
         let timedResult = try Stopwatch.time(countTo5.run())
 
         XCTAssertTrue(
-            timedResult.duration >= 4.0,
+            timedResult.duration >= 1.2,
             "Actual time difference was \(timedResult.duration)"
         )
         XCTAssertEqual(attempts, timedResult.value)
@@ -49,13 +49,13 @@ final class TenaciousExecutorTests: XCTestCase {
         let countTo5: TenaciousExecutor<Int> =
             try .performing(counter())
                 .with(name: "simple exponential test")
-                .with(backoffMethod: .exponential(500))
+                .with(backoffMethod: .exponential(100))
                 .with(attemptsLimitedTo: 5)
 
         let timedResult = try Stopwatch.time(countTo5.run())
 
         XCTAssertTrue(
-            timedResult.duration >= 7.5,
+            timedResult.duration >= 1.5,
             "Actual time difference was \(timedResult.duration)"
         )
         XCTAssertEqual(attempts, timedResult.value)
@@ -74,13 +74,13 @@ final class TenaciousExecutorTests: XCTestCase {
                 return attempts
             }
             .with(name: "simple fixed interval test")
-            .with(backoffMethod: .fixedUniformInterval(500...1000))
+            .with(backoffMethod: .fixedUniformInterval(250...500))
             .with(attemptsLimitedTo: 5)
 
         let timedResult = try Stopwatch.time(countTo5.run())
 
         XCTAssertTrue(
-            timedResult.duration >= 2,
+            timedResult.duration >= 1,
             "Actual time difference was \(timedResult.duration)"
         )
         XCTAssertEqual(attempts, timedResult.value)
@@ -99,13 +99,13 @@ final class TenaciousExecutorTests: XCTestCase {
                 return attempts
             }
             .with(name: "simple exponential interval test")
-            .with(backoffMethod: .exponentialUniformInverval(500...1000))
+            .with(backoffMethod: .exponentialUniformInverval(100...175))
             .with(attemptsLimitedTo: 5)
 
         let timedResult = try Stopwatch.time(countTo5.run())
 
         XCTAssertTrue(
-            timedResult.duration >= 7.5,
+            timedResult.duration >= 1.5,
             "Actual time difference was \(timedResult.duration)"
         )
         XCTAssertEqual(attempts, timedResult.value)
@@ -171,19 +171,19 @@ final class TenaciousExecutorTests: XCTestCase {
 
         let countTo5: TenaciousExecutor<Void> =
             .performing {
-                guard Stopwatch.get(timer: "min lifetime timer") >= 5.0 else {
+                guard Stopwatch.get(timer: "min lifetime timer") >= 1.5 else {
                     throw ExecutorTestError(message: "Required lifetime not yet met")
                 }
             }
             .with(name: "min lifetime test")
             .with(backoffMethod: .exponential(100))
-            .with(backoffTimeLimitedTo: 1000)
-            .with(minimumTotalLifetime: 5000)
+            .with(backoffTimeLimitedTo: 500)
+            .with(minimumTotalLifetime: 1500)
 
         let timedResult = try Stopwatch.time(countTo5.run())
 
         XCTAssertTrue(
-            timedResult.duration >= 5.0,
+            timedResult.duration >= 1.5,
             "Actual time difference was \(timedResult.duration)"
         )
     }
