@@ -11,7 +11,7 @@ public func <> <C>(lhs: C, rhs: C) -> C where C: Comparable { lhs < rhs ? lhs : 
 
 /// Returns the larger of two values
 ///
-///     let max = 7 <> 6
+///     let max = 7 >< 6
 ///     print(max) // 7
 @inlinable
 @inline(__always)
