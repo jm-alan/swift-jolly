@@ -34,22 +34,6 @@ public extension Sequence {
 
     @inlinable
     @inline(__always)
-    func nilter<O>(
-        _ nilter: (Element) -> O?
-    ) -> [Self.Element] {
-        filter { nilter($0) != nil }
-    }
-
-    @inlinable
-    @inline(__always)
-    func nilter<O>(
-        _ nilter: (Element) throws -> O?
-    ) rethrows -> [Self.Element] {
-        try filter { try nilter($0) != nil }
-    }
-
-    @inlinable
-    @inline(__always)
     func nilter<T>(
         _ keyPath: KeyPath<Element, T?>
     ) -> [Self.Element] {

@@ -40,10 +40,6 @@ public extension RandomAccessCollection {
     /// `ProcessInfo.processInfo.activeProcessorCount` slices, and runs the provided closure
     /// concurrently on each slice, before concatenating the slices back together in order.
     ///
-    /// The desired output must conform to `RangeReplaceableCollection` as the implementation
-    /// currently relies on being able to initialize an empty target, and fill it by successively
-    /// calling `append(contentsOf:)`
-    ///
     /// Note that this function makes no guarantees about the concurrency safey of the provided
     /// closure, only the order of the elements in the resulting collection.
     @inlinable
@@ -88,10 +84,6 @@ public extension RandomAccessCollection {
     /// Splits the collection into `maxConcurrentDivisions` pieces, defaulting to
     /// `ProcessInfo.processInfo.activeProcessorCount` slices, and runs the provided closure
     /// concurrently on each slice, before concatenating the slices back together in order.
-    ///
-    /// The desired output must conform to `RangeReplaceableCollection` as the implementation
-    /// currently relies on being able to initialize an empty target, and fill it by successively
-    /// calling `append(contentsOf:)`
     ///
     /// Note that this function makes no guarantees about the concurrency safey of the provided
     /// closure, only the order of the elements in the resulting collection.

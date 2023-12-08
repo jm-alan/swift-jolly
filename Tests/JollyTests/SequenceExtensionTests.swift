@@ -65,9 +65,6 @@ final class SequenceExtensionTests: XCTestCase {
     }
 
     func testConcurrency() async throws {
-        var expectedEvensOnly: [Int] = .init()
-        var computedEvensOnly: [Int] = .init()
-
         var expectedOddsOnly: [Int] = .init()
         var computedOddsOnly: [Int] = .init()
 
@@ -78,16 +75,12 @@ final class SequenceExtensionTests: XCTestCase {
         var simpleStructsDoNotSatisfy: [SimpleStruct] = .init()
 
         for i in 0..<Self.arrCapacity {
-            if Self.someArr[i] % 2 == 0 { expectedEvensOnly.append(Self.someArr[i]) }
             if Self.someArr[i] % 2 == 0 { expectedDoubledEvens.append(Self.someArr[i] * 2) }
             if Self.someArr[i] % 2 != 0 { expectedOddsOnly.append(Self.someArr[i]) }
             simpleStructsDoSatisfy.append(.init(someVal: 1_000_000 + Self.someArr[i]))
             simpleStructsDoNotSatisfy.append(.init(someVal: 1_000_000 - Self.someArr[i]))
         }
 
-        try await AsyncAssertNoThrow(
-            await computedEvensOnly = Self.someArr.concurrentNilter { $0 % 2 == 0 ? $0 : nil }
-        )
         try await AsyncAssertNoThrow(
             await computedOddsOnly = Self.someArr.concurrentFilter { $0 % 2 != 0 }
         )
@@ -106,7 +99,6 @@ final class SequenceExtensionTests: XCTestCase {
             await simpleStructsDoSatisfy.concurrentContains { $0.someVal >= 1_000_000 }
         )
 
-        XCTAssertEqual(expectedEvensOnly, computedEvensOnly)
         XCTAssertEqual(expectedOddsOnly, computedOddsOnly)
         XCTAssertEqual(expectedDoubledEvens, computedDoubledEvens)
     }

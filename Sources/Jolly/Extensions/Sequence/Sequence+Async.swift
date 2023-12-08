@@ -11,10 +11,10 @@ public extension Sequence {
 
     @inlinable
     @inline(__always)
-    func map<R>(
-        _ transform: (Element) async throws -> R.Element
-    ) async rethrows -> R where R: RangeReplaceableCollection {
-        var mapped: R = .init()
+    func map<T>(
+        _ transform: (Element) async throws -> T
+    ) async rethrows -> [T] {
+        var mapped: [T] = .init()
         for el: Element in self {
             try await mapped.append(transform(el))
         }
@@ -23,12 +23,12 @@ public extension Sequence {
 
     @inlinable
     @inline(__always)
-    func compactMap<R>(
-        _ transform: (Element) async throws -> R.Element?
-    ) async rethrows -> R where R: RangeReplaceableCollection {
-        var mapped: R = .init()
+    func compactMap<T>(
+        _ transform: (Element) async throws -> T?
+    ) async rethrows -> [T] {
+        var mapped: [T] = .init()
         for el: Element in self {
-            guard let transformed: R.Element = try await transform(el) else { continue }
+            guard let transformed: T = try await transform(el) else { continue }
             mapped.append(transformed)
         }
         return mapped
@@ -92,18 +92,5 @@ public extension Sequence {
             if try await isIncluded(el) { filtered.append(el) }
         }
         return filtered
-    }
-
-    @inlinable
-    @inline(__always)
-    func nilter<T>(
-        _ nilter: (Element) async throws -> T?
-    ) async rethrows -> [Self.Element] {
-        var niltered: [Self.Element] = .init()
-        for el: Element in self {
-            guard try await nilter(el) != nil else { continue }
-            niltered.append(el)
-        }
-        return niltered
     }
 }

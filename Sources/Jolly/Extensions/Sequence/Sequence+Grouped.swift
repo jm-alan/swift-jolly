@@ -77,15 +77,6 @@ public extension Sequence {
 
     @inlinable
     @inline(__always)
-    func groupedNilter<KeyType, OptionalType>(
-        by keySelector: (Element) throws -> KeyType,
-        nilter: (Element) throws -> OptionalType?
-    ) rethrows -> [KeyType: [Element]] where KeyType: Hashable {
-        try grouped(by: keySelector) { try $0.nilter(nilter) }
-    }
-
-    @inlinable
-    @inline(__always)
     func groupedReduce<KeyType, ResultType>(
         _ initialValue: ResultType,
         keySelector: (Element) throws -> KeyType,
