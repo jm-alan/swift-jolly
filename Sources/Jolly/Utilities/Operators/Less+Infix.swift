@@ -4,7 +4,7 @@ public func < <T, C>(
     _ lhs: KeyPath<T, C>,
     _ rhs: KeyPath<T, C>
 ) -> KeyComparator<T, C> where C: Comparable {
-    .init(lhs: lhs, rhs: rhs, method: .lesser)
+    .init(lhs: lhs, rhs: rhs, method: .less)
 }
 
 @inlinable
@@ -13,5 +13,5 @@ public func < <T, C>(
     _ lhs: KeyPath<T, C>,
     _ rhs: C
 ) -> KeyValComparator<T, C> where C: Comparable {
-    .init(lhs: lhs, rhs: rhs, method: .lesser)
+    .init(lhs: lhs, rhs: rhs, method: .less)
 }

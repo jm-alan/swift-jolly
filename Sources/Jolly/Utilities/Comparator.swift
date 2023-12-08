@@ -1,7 +1,7 @@
 public struct KeyComparator<T, C> where C: Comparable {
     public let leftKey: KeyPath<T, C>
     public let rightKey: KeyPath<T, C>
-    public let method: ComparisonTypes
+    public let method: ComparisonType
 
     @inlinable
     @inline(__always)
@@ -9,9 +9,9 @@ public struct KeyComparator<T, C> where C: Comparable {
         switch method {
         case .equal:
             return lhs[keyPath: leftKey] == rhs[keyPath: rightKey]
-        case .lesser:
+        case .less:
             return lhs[keyPath: leftKey] < rhs[keyPath: rightKey]
-        case .lesserEqual:
+        case .lessEqual:
             return lhs[keyPath: leftKey] <= rhs[keyPath: rightKey]
         case .greater:
             return lhs[keyPath: leftKey] > rhs[keyPath: rightKey]
@@ -23,7 +23,7 @@ public struct KeyComparator<T, C> where C: Comparable {
     public init(
         lhs: KeyPath<T, C>,
         rhs: KeyPath<T, C>,
-        method: ComparisonTypes = .equal
+        method: ComparisonType = .equal
     ) {
         leftKey = lhs
         rightKey = rhs
@@ -31,39 +31,10 @@ public struct KeyComparator<T, C> where C: Comparable {
     }
 }
 
-public struct ValueComparator<C> where C: Comparable {
-    public let lhs: C
-    public let rhs: C
-    public let method: ComparisonTypes
-
-    @inlinable
-    @inline(__always)
-    public func getValue() -> Bool {
-        switch method {
-        case .equal:
-            return lhs == rhs
-        case .lesser:
-            return lhs < rhs
-        case .lesserEqual:
-            return lhs <= rhs
-        case .greater:
-            return lhs > rhs
-        case .greaterEqual:
-            return lhs >= rhs
-        }
-    }
-
-    public init(lhs: C, rhs: C, method: ComparisonTypes = .equal) {
-        self.lhs = lhs
-        self.rhs = rhs
-        self.method = method
-    }
-}
-
 public struct KeyValComparator<T, C> where C: Comparable {
     public let lhs: KeyPath<T, C>
     public let rhs: C
-    public var method: ComparisonTypes
+    public var method: ComparisonType
 
     @inlinable
     @inline(__always)
@@ -71,9 +42,9 @@ public struct KeyValComparator<T, C> where C: Comparable {
         switch method {
         case .equal:
             return value[keyPath: lhs] == rhs
-        case .lesser:
+        case .less:
             return value[keyPath: lhs] < rhs
-        case .lesserEqual:
+        case .lessEqual:
             return value[keyPath: lhs] <= rhs
         case .greater:
             return value[keyPath: lhs] > rhs
@@ -82,17 +53,17 @@ public struct KeyValComparator<T, C> where C: Comparable {
         }
     }
 
-    public init(lhs: KeyPath<T, C>, rhs: C, method: ComparisonTypes = .equal) {
+    public init(lhs: KeyPath<T, C>, rhs: C, method: ComparisonType = .equal) {
         self.lhs = lhs
         self.rhs = rhs
         self.method = method
     }
 }
 
-public enum ComparisonTypes {
+public enum ComparisonType {
     case equal
-    case lesser
-    case lesserEqual
+    case less
+    case lessEqual
     case greater
     case greaterEqual
 }
