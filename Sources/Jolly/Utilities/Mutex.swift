@@ -6,18 +6,18 @@ public struct Mutex {
 
     @inlinable
     @inline(__always)
-    func atomize(operation: () throws -> Void) rethrows {
+    func atomize<T>(operation: () throws -> T) rethrows -> T {
         lock.lock()
         defer { lock.unlock() }
-        try operation()
+        return try operation()
     }
 
     @inlinable
     @inline(__always)
-    func atomize(expression: @autoclosure () throws -> Void) rethrows {
+    func atomize<T>(expression: @autoclosure () throws -> T) rethrows -> T {
         lock.lock()
         defer { lock.unlock() }
-        try expression()
+        return try expression()
     }
 }
 
