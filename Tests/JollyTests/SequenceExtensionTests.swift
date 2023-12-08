@@ -35,7 +35,7 @@ final class SequenceExtensionTests: XCTestCase {
 
     func testConcurrentForEach() async {
         var counter: AtomicValue<Int> = .init()
-        let expectedCounter: Int = await Self.someArr.reduce(0, +)
+        let expectedCounter: Int = Self.someArr.reduce(0, +)
 
         try await AsyncAssertNoThrow(
             await Self.someArr.concurrentForEach { counter += $0 }
