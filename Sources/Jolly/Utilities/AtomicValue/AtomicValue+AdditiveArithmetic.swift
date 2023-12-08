@@ -11,13 +11,7 @@ extension AtomicValue: AdditiveArithmetic where Wrapped: AdditiveArithmetic {
         lhs: AtomicValue<Wrapped>,
         rhs: AtomicValue<Wrapped>
     ) -> AtomicValue<Wrapped> {
-        var result: AtomicValue<Wrapped>!
-        lhs.use { leftVal in
-            rhs.use { rightVal in
-                result = .init(wrapped: leftVal + rightVal)
-            }
-        }
-        return result
+        lhs.use { leftVal in rhs.use { .init(wrapped: leftVal + $0) } }
     }
 
     @inlinable
@@ -25,26 +19,14 @@ extension AtomicValue: AdditiveArithmetic where Wrapped: AdditiveArithmetic {
     public static func + (
         lhs: AtomicValue<Wrapped>,
         rhs: Wrapped
-    ) -> AtomicValue<Wrapped> {
-        var result: AtomicValue<Wrapped>!
-        lhs.use { leftVal in
-            result = .init(wrapped: leftVal + rhs)
-        }
-        return result
-    }
+    ) -> AtomicValue<Wrapped> { lhs.use { .init(wrapped: $0 + rhs) } }
 
     @inlinable
     @inline(__always)
     public static func + (
         lhs: Wrapped,
         rhs: AtomicValue<Wrapped>
-    ) -> AtomicValue<Wrapped> {
-        var result: AtomicValue<Wrapped>!
-        rhs.use { rightVal in
-            result = .init(wrapped: lhs + rightVal)
-        }
-        return result
-    }
+    ) -> AtomicValue<Wrapped> { rhs.use { .init(wrapped: lhs + $0) } }
 
     @inlinable
     @inline(__always)
@@ -52,13 +34,7 @@ extension AtomicValue: AdditiveArithmetic where Wrapped: AdditiveArithmetic {
         lhs: AtomicValue<Wrapped>,
         rhs: AtomicValue<Wrapped>
     ) -> Wrapped {
-        var result: Wrapped!
-        lhs.use { leftVal in
-            rhs.use { rightVal in
-                result = leftVal + rightVal
-            }
-        }
-        return result
+        lhs.use { leftVal in rhs.use { leftVal + $0 } }
     }
 
     @inlinable
@@ -66,26 +42,14 @@ extension AtomicValue: AdditiveArithmetic where Wrapped: AdditiveArithmetic {
     public static func + (
         lhs: AtomicValue<Wrapped>,
         rhs: Wrapped
-    ) -> Wrapped {
-        var result: Wrapped!
-        lhs.use { leftVal in
-            result = leftVal + rhs
-        }
-        return result
-    }
+    ) -> Wrapped { lhs.use { $0 + rhs } }
 
     @inlinable
     @inline(__always)
     public static func + (
         lhs: Wrapped,
         rhs: AtomicValue<Wrapped>
-    ) -> Wrapped {
-        var result: Wrapped!
-        rhs.use { rightVal in
-            result = lhs + rightVal
-        }
-        return result
-    }
+    ) -> Wrapped { rhs.use { lhs + $0 } }
 
     @inlinable
     @inline(__always)
@@ -93,13 +57,7 @@ extension AtomicValue: AdditiveArithmetic where Wrapped: AdditiveArithmetic {
         lhs: AtomicValue<Wrapped>,
         rhs: AtomicValue<Wrapped>
     ) -> AtomicValue<Wrapped> {
-        var result: AtomicValue<Wrapped>!
-        lhs.use { leftVal in
-            rhs.use { rightVal in
-                result = .init(wrapped: leftVal - rightVal)
-            }
-        }
-        return result
+        lhs.use { leftVal in rhs.use { .init(wrapped: leftVal - $0) } }
     }
 
     @inlinable
@@ -107,26 +65,14 @@ extension AtomicValue: AdditiveArithmetic where Wrapped: AdditiveArithmetic {
     public static func - (
         lhs: AtomicValue<Wrapped>,
         rhs: Wrapped
-    ) -> AtomicValue<Wrapped> {
-        var result: AtomicValue<Wrapped>!
-        lhs.use { leftVal in
-            result = .init(wrapped: leftVal - rhs)
-        }
-        return result
-    }
+    ) -> AtomicValue<Wrapped> { lhs.use { .init(wrapped: $0 - rhs) } }
 
     @inlinable
     @inline(__always)
     public static func - (
         lhs: Wrapped,
         rhs: AtomicValue<Wrapped>
-    ) -> AtomicValue<Wrapped> {
-        var result: AtomicValue<Wrapped>!
-        rhs.use { rightVal in
-            result = .init(wrapped: lhs - rightVal)
-        }
-        return result
-    }
+    ) -> AtomicValue<Wrapped> { rhs.use { .init(wrapped: lhs - $0) } }
 
     @inlinable
     @inline(__always)
@@ -134,13 +80,7 @@ extension AtomicValue: AdditiveArithmetic where Wrapped: AdditiveArithmetic {
         lhs: AtomicValue<Wrapped>,
         rhs: AtomicValue<Wrapped>
     ) -> Wrapped {
-        var result: Wrapped!
-        lhs.use { leftVal in
-            rhs.use { rightVal in
-                result = leftVal - rightVal
-            }
-        }
-        return result
+        lhs.use { leftVal in rhs.use { leftVal - $0 } }
     }
 
     @inlinable
@@ -148,94 +88,54 @@ extension AtomicValue: AdditiveArithmetic where Wrapped: AdditiveArithmetic {
     public static func - (
         lhs: AtomicValue<Wrapped>,
         rhs: Wrapped
-    ) -> Wrapped {
-        var result: Wrapped!
-        lhs.use { leftVal in
-            result = leftVal - rhs
-        }
-        return result
-    }
+    ) -> Wrapped { lhs.use { $0 - rhs } }
 
     @inlinable
     @inline(__always)
     public static func - (
         lhs: Wrapped,
         rhs: AtomicValue<Wrapped>
-    ) -> Wrapped {
-        var result: Wrapped!
-        rhs.use { rightVal in
-            result = lhs - rightVal
-        }
-        return result
-    }
+    ) -> Wrapped { rhs.use { lhs - $0 } }
 
     @inlinable
     @inline(__always)
     public static func += (
         lhs: inout AtomicValue<Wrapped>,
         rhs: AtomicValue<Wrapped>
-    ) {
-        lhs.use { leftVal in
-            rhs.use { rightVal in
-                leftVal += rightVal
-            }
-        }
-    }
+    ) { rhs.use { rightVal in lhs.mut { $0 += rightVal } } }
 
     @inlinable
     @inline(__always)
     public static func += (
         lhs: inout AtomicValue<Wrapped>,
         rhs: Wrapped
-    ) {
-        lhs.use { leftVal in
-            leftVal += rhs
-        }
-    }
+    ) { lhs.mut { $0 += rhs } }
 
     @inlinable
     @inline(__always)
     public static func += (
         lhs: inout Wrapped,
         rhs: AtomicValue<Wrapped>
-    ) {
-        rhs.use { rightVal in
-            lhs += rightVal
-        }
-    }
+    ) { rhs.use { lhs += $0 } }
 
     @inlinable
     @inline(__always)
     public static func -= (
         lhs: inout AtomicValue<Wrapped>,
         rhs: AtomicValue<Wrapped>
-    ) {
-        lhs.use { leftVal in
-            rhs.use { rightVal in
-                leftVal -= rightVal
-            }
-        }
-    }
+    ) { rhs.use { rightVal in lhs.mut { $0 -= rightVal } } }
 
     @inlinable
     @inline(__always)
     public static func -= (
         lhs: inout AtomicValue<Wrapped>,
         rhs: Wrapped
-    ) {
-        lhs.use { leftVal in
-            leftVal -= rhs
-        }
-    }
+    ) { lhs.mut { $0 -= rhs } }
 
     @inlinable
     @inline(__always)
     public static func -= (
         lhs: inout Wrapped,
         rhs: AtomicValue<Wrapped>
-    ) {
-        rhs.use { rightVal in
-            lhs -= rightVal
-        }
-    }
+    ) { rhs.use { lhs -= $0 } }
 }
